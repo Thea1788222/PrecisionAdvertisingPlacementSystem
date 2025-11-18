@@ -1,7 +1,7 @@
 CREATE DATABASE IF NOT EXISTS advertising_system;
 USE advertising_system;
 -- 广告商表
-CREATE TABLE advertisers (
+CREATE TABLE IF NOT EXISTS advertisers (
                              id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '广告商ID',
                              name VARCHAR(100) NOT NULL COMMENT '广告商名称',
                              contact VARCHAR(100) COMMENT '联系人',
@@ -9,10 +9,10 @@ CREATE TABLE advertisers (
                              balance DECIMAL(10,2) DEFAULT 0 COMMENT '账户余额',
                              status TINYINT DEFAULT 1 COMMENT '状态：1-启用，0-禁用',
                              created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间'
-);
+) COMMENT '广告商信息表';
 
 -- 广告素材表
-CREATE TABLE ad_materials (
+CREATE TABLE IF NOT EXISTS ad_materials (
                               id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '广告素材ID',
                               advertiser_id BIGINT COMMENT '广告商ID',
                               title VARCHAR(200) COMMENT '广告标题',
@@ -29,10 +29,10 @@ CREATE TABLE ad_materials (
                               status TINYINT DEFAULT 1 COMMENT '状态：1-启用，0-禁用',
                               created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
                               FOREIGN KEY (advertiser_id) REFERENCES advertisers(id)
-);
+) COMMENT '广告素材表';
 
 -- 用户行为表
-CREATE TABLE user_behaviors (
+CREATE TABLE IF NOT EXISTS user_behaviors (
                                 id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '行为记录ID',
                                 user_fingerprint VARCHAR(64) NOT NULL COMMENT '浏览器指纹',
                                 cookie_id VARCHAR(64) NOT NULL COMMENT 'Cookie ID',
@@ -48,10 +48,10 @@ CREATE TABLE user_behaviors (
                                 INDEX idx_cookie (cookie_id),
                                 INDEX idx_fingerprint (user_fingerprint),
                                 INDEX idx_created (created_at)
-);
+) COMMENT '用户行为记录表';
 
 -- 用户画像表
-CREATE TABLE user_profiles (
+CREATE TABLE IF NOT EXISTS user_profiles (
                                id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '用户画像ID',
                                cookie_id VARCHAR(64) UNIQUE NOT NULL COMMENT 'Cookie ID',
                                user_fingerprint VARCHAR(64) COMMENT '浏览器指纹',
@@ -61,10 +61,10 @@ CREATE TABLE user_profiles (
                                last_active TIMESTAMP COMMENT '最后活跃时间',
                                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
                                INDEX idx_cookie (cookie_id)
-);
+) COMMENT '用户画像表';
 
 -- 广告投放记录
-CREATE TABLE ad_impressions (
+CREATE TABLE IF NOT EXISTS ad_impressions (
                                 id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '投放记录ID',
                                 ad_id BIGINT COMMENT '广告ID',
                                 cookie_id VARCHAR(64) COMMENT '用户Cookie ID',
@@ -76,10 +76,10 @@ CREATE TABLE ad_impressions (
                                 FOREIGN KEY (ad_id) REFERENCES ad_materials(id),
                                 INDEX idx_ad (ad_id),
                                 INDEX idx_cookie (cookie_id)
-);
+) COMMENT '广告投放记录表';
 
 -- 广告位配置表
-CREATE TABLE ad_positions (
+CREATE TABLE IF NOT EXISTS ad_positions (
                               id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '广告位ID',
                               website VARCHAR(50) NOT NULL COMMENT '网站标识',
                               position_key VARCHAR(50) NOT NULL COMMENT '位置标识',
@@ -89,10 +89,10 @@ CREATE TABLE ad_positions (
                               description TEXT COMMENT '描述信息',
                               created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
                               UNIQUE KEY uk_website_position (website, position_key)
-);
+) COMMENT '广告位配置表';
 
 -- 广告统计数据表
-CREATE TABLE ad_statistics (
+CREATE TABLE IF NOT EXISTS ad_statistics (
                                id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '统计记录ID',
                                ad_id BIGINT NOT NULL COMMENT '广告ID',
                                impressions_count INT DEFAULT 0 COMMENT '展示次数',
@@ -105,4 +105,4 @@ CREATE TABLE ad_statistics (
                                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
                                FOREIGN KEY (ad_id) REFERENCES ad_materials(id),
                                UNIQUE KEY uk_ad_date (ad_id, date)
-);
+) COMMENT '广告统计数据表';

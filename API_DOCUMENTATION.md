@@ -877,7 +877,7 @@
 ```javascript
 // 初始化SDK
 adTracker.init({
-  trackerServer: 'http://localhost:8084',
+  trackerServer: 'http://服务器IP:8084',
   website: 'shopping'
 });
 
@@ -939,13 +939,13 @@ adTracker.getRecommendedAds({
 - `JWT_SECRET`: JWT密钥
 - `TRACKER_SERVER_URL`: 广告追踪服务URL
 
-### 12.2 Nginx配置
-建议使用Nginx作为反向代理，配置如下子域名：
-- `admin.ad-system.local` -> 广告管理平台
-- `shop.ad-system.local` -> 购物网站
-- `video.ad-system.local` -> 视频网站
-- `news.ad-system.local` -> 新闻网站
-- `track.ad-system.local` -> 广告追踪服务
+### 12.2 服务器部署配置
+建议将5个服务分别部署在不同的物理服务器上，每台服务器配置独立的IP地址：
+- `广告管理平台`: 服务器1 (如: 192.168.1.10:8080)
+- `购物网站`: 服务器2 (如: 192.168.1.11:8081)
+- `视频网站`: 服务器3 (如: 192.168.1.12:8082)
+- `新闻网站`: 服务器4 (如: 192.168.1.13:8083)
+- `广告追踪服务`: 服务器5 (如: 192.168.1.14:8084)
 
 ## 13. 监控和日志
 
