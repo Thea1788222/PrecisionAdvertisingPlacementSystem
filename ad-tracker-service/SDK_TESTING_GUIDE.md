@@ -66,7 +66,12 @@ http://localhost:8084/test-sdk.html
 ```javascript
 // 等待SDK加载完成后运行测试
 setTimeout(async () => {
-    await testSuite.run();
+    // 注意：testSuite在sdk-test.js中定义，需要确保该脚本已加载
+    if (typeof testSuite !== 'undefined') {
+        await testSuite.run();
+    } else {
+        console.error('测试套件未定义，请确保sdk-test.js已加载');
+    }
 }, 1000);
 ```
 

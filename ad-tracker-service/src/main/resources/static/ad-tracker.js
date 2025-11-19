@@ -13,7 +13,8 @@
         config: {
             trackerServer: '',
             website: '',
-            cookieId: null
+            cookieId: null,
+            domain: null
         },
         
         /**
@@ -21,10 +22,12 @@
          * @param {Object} options - 配置选项
          * @param {string} options.trackerServer - 追踪服务地址
          * @param {string} options.website - 网站标识
+         * @param {string} options.domain - 可选的Cookie域
          */
         init: function(options) {
             this.config.trackerServer = options.trackerServer || '';
             this.config.website = options.website || '';
+            this.config.domain = options.domain || null;
             
             // 获取或生成cookie ID
             this.config.cookieId = this.getCookie('ad_tracker_cid');
@@ -69,7 +72,11 @@
                 date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
                 expires = "; expires=" + date.toUTCString();
             }
-            document.cookie = name + "=" + value + expires + "; path=/";
+            var cookieString = name + "=" + value + expires + "; path=/";
+            if (this.config.domain) {
+                cookieString += "; domain=" + this.config.domain;
+            }
+            document.cookie = cookieString;
         },
         
         /**

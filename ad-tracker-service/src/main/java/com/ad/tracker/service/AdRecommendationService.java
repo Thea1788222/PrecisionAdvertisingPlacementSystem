@@ -27,6 +27,21 @@ public class AdRecommendationService {
         if (category != null && !category.isEmpty()) {
             materials = adMaterialRepository.findByCategoryAndStatusOrderByBidPriceDesc(
                 category, 1); // 1表示启用状态
+        } else if (userProfile != null) {
+            // 如果没有指定类别但有用户画像，则根据用户画像中的类别推荐
+            String userCategory = userProfile.getCategories();
+            if (userCategory != null && !userCategory.isEmpty()) {
+                // 取用户画像中的第一个类别
+                String[] categories = userCategory.split(",");
+                materials = adMaterialRepository.findByCategoryAndStatusOrderByBidPriceDesc(
+                    categories[0], 1);
+            }
+        }
+        
+        // 如果还没有广告素材，则返回所有启用状态的广告作为兜底
+        if (materials.isEmpty()) {
+            materials = adMaterialRepository.findByCategoryAndStatusOrderByBidPriceDesc(
+                "electronics", 1); // 默认使用电子产品类别
         }
         
         // 如果指定了数量，截取相应数量的广告
