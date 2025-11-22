@@ -9,13 +9,12 @@ cd /Users/DaYang/ProjectCode/JavaDevelopProject/PrecisionAdvertisingPlacementSys
 mvn spring-boot:run
 ```
 
-服务应运行在 `http://localhost:8084`
+服务应运行在 `http://localhost:8084`，跨域测试时也可通过 `http://track.test.com:8084` 访问
 
 ### 1.2 确认静态资源可访问
 确认以下文件可通过浏览器访问：
 - `http://localhost:8084/ad-tracker.js` - SDK文件
 - `http://localhost:8084/test-sdk.html` - 测试页面
-- `http://localhost:8084/sdk-test.js` - 自动化测试脚本
 
 ## 2. 手动功能测试
 
@@ -25,14 +24,20 @@ mvn spring-boot:run
 http://localhost:8084/test-sdk.html
 ```
 
+或者在配置了hosts后通过以下地址访问：
+```
+http://shop.test.com:8084/test-sdk.html
+```
+
 ### 2.2 逐步执行测试
 
 #### 步骤1：初始化SDK
-1. 点击"初始化SDK"按钮
+1. 点击"初始化SDK(带域名)"按钮
 2. 检查结果显示区，应显示：
    - SDK初始化成功
-   - 追踪服务器地址
+   - 追踪服务器地址为 http://track.test.com:8084
    - 网站标识
+   - Cookie域为 .test.com
    - 生成的Cookie ID
 
 #### 步骤2：用户行为追踪
@@ -60,39 +65,10 @@ http://localhost:8084/test-sdk.html
 
 ### 3.1 浏览器控制台测试
 1. 打开测试页面 `http://localhost:8084/test-sdk.html`
-2. 按F12打开开发者工具
-3. 切换到Console标签页
-4. 输入以下命令运行自动化测试：
-```javascript
-// 等待SDK加载完成后运行测试
-setTimeout(async () => {
-    // 注意：testSuite在sdk-test.js中定义，需要确保该脚本已加载
-    if (typeof testSuite !== 'undefined') {
-        await testSuite.run();
-    } else {
-        console.error('测试套件未定义，请确保sdk-test.js已加载');
-    }
-}, 1000);
-```
-
-### 3.2 验证测试结果
-在控制台中应看到类似以下的输出：
-```
-开始运行广告追踪SDK测试套件...
-
-✅ SDK初始化: 通过
-✅ UUID生成: 通过
-✅ Cookie操作: 通过
-✅ 浏览器指纹生成: 通过
-✅ 页面浏览追踪: 通过
-✅ 点击事件追踪: 通过
-✅ 广告展示追踪: 通过
-✅ 广告点击追踪: 通过
-✅ 推荐广告获取: 通过
-
-测试结果摘要:
-总计: 9, 通过: 9, 失败: 0
-```
+2. 点击"运行自动化测试"按钮
+3. 按F12打开开发者工具
+4. 切换到Console标签页
+5. 查看测试结果输出
 
 ## 4. 验证数据库记录
 
@@ -123,17 +99,21 @@ SELECT * FROM user_profiles WHERE cookie_id = '你的测试Cookie ID';
 ### 5.1 配置本地域名
 在 `/etc/hosts` 文件中添加以下内容：
 ```
-127.0.0.1 shop.local
-127.0.0.1 video.local
-127.0.0.1 news.local
-127.0.0.1 track.local
+127.0.0.1 shop.test.com
+127.0.0.1 video.test.com
+127.0.0.1 news.test.com
+127.0.0.1 track.test.com
 ```
 
+注意：这些域名使用 `.test.com` 后缀以符合现代浏览器的Cookie安全策略。
+
 ### 5.2 测试跨域Cookie共享
-1. 访问 `http://shop.local:8084/test-sdk.html`
-2. 初始化SDK并执行一些操作
-3. 访问 `http://video.local:8084/test-sdk.html`
-4. 验证Cookie ID是否保持一致
+1. 访问 `http://shop.test.com:8084/test-sdk.html`
+2. 点击"初始化SDK(带域名)"按钮，确保domain设置为`.test.com`
+3. 执行一些用户行为操作(如记录页面浏览、点击等)
+4. 访问 `http://video.test.com:8084/test-sdk.html`
+5. 点击"初始化SDK(带域名)"按钮
+6. 验证Cookie ID是否保持一致，确保跨域Cookie共享正常工作
 
 ## 6. 常见问题排查
 
@@ -156,7 +136,7 @@ SELECT * FROM user_profiles WHERE cookie_id = '你的测试Cookie ID';
 
 通过以下所有检查点即表示SDK测试完成：
 
-- [ ] SDK可以成功初始化
+- [ ] SDK可以成功初始化，且domain设置为.test.com
 - [ ] 能够生成唯一的用户标识(Cookie ID和浏览器指纹)
 - [ ] 用户行为可以正确追踪(页面浏览、点击等)
 - [ ] 广告交互可以正确追踪(展示、点击)

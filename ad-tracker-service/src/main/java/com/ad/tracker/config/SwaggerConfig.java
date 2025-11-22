@@ -31,7 +31,7 @@ public class SwaggerConfig {
                                 .url("http://localhost:8084")
                                 .description("本地开发服务器"),
                         new Server()
-                                .url("http://track.local:8084")
+                                .url("http://track.test.com:8084")
                                 .description("本地测试服务器")));
     }
 }

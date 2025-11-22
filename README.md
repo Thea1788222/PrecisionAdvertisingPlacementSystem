@@ -245,15 +245,15 @@
 
 #### Day 5-7：广告追踪服务核心开发（杨）
 
-- [ ] 实现用户行为追踪API
+- [x] 实现用户行为追踪API
   - POST /track/behavior（记录行为）
   - POST /track/impression（记录展示）
   - POST /track/click（记录点击）
-- [ ] 实现浏览器指纹生成
-- [ ] 实现Cookie管理（支持不同物理服务器模式）
-- [ ] 实现用户画像构建逻辑
-- [ ] 实现广告推荐算法
-- [ ] 开发追踪SDK（ad-tracker.js）
+- [x] 实现浏览器指纹生成
+- [x] 实现Cookie管理（支持不同物理服务器模式）
+- [x] 实现用户画像构建逻辑
+- [x] 实现广告推荐算法
+- [x] 开发追踪SDK（ad-tracker.js）
 
 **交付物**：
 

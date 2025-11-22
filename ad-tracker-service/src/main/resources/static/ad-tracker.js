@@ -8,15 +8,15 @@
     typeof define === 'function' && define.amd ? define(factory) :
     (global.adTracker = factory());
 }(this, (function () { 'use strict';
-    
+
     var adTracker = {
         config: {
             trackerServer: '',
             website: '',
             cookieId: null,
-            domain: null
+            domain: '.test.com'
         },
-        
+
         /**
          * 初始化SDK
          * @param {Object} options - 配置选项
@@ -28,7 +28,7 @@
             this.config.trackerServer = options.trackerServer || '';
             this.config.website = options.website || '';
             this.config.domain = options.domain || null;
-            
+
             // 获取或生成cookie ID
             this.config.cookieId = this.getCookie('ad_tracker_cid');
             if (!this.config.cookieId) {
@@ -36,7 +36,7 @@
                 this.setCookie('ad_tracker_cid', this.config.cookieId, 365);
             }
         },
-        
+
         /**
          * 生成UUID
          */
@@ -47,7 +47,7 @@
                 return v.toString(16);
             });
         },
-        
+
         /**
          * 获取Cookie值
          */
@@ -61,7 +61,7 @@
             }
             return null;
         },
-        
+
         /**
          * 设置Cookie值
          */
@@ -78,7 +78,7 @@
             }
             document.cookie = cookieString;
         },
-        
+
         /**
          * 生成浏览器指纹
          */
@@ -96,7 +96,7 @@
             ctx.fillStyle = "rgba(102, 204, 0, 0.7)";
             ctx.fillText(txt, 4, 17);
             var strng = canvas.toDataURL();
-            
+
             var hash = 0;
             if (strng.length === 0) return hash;
             for (var i = 0; i < strng.length; i++) {
@@ -106,7 +106,7 @@
             }
             return hash;
         },
-        
+
         /**
          * 发送HTTP请求
          */
@@ -126,7 +126,7 @@
             };
             xhr.send(JSON.stringify(data));
         },
-        
+
         /**
          * 记录页面浏览
          */
@@ -143,10 +143,10 @@
                 ipAddress: '',
                 userAgent: navigator.userAgent
             };
-            
+
             this.sendRequest('/api/track/behavior', data);
         },
-        
+
         /**
          * 记录点击事件
          */
@@ -163,10 +163,10 @@
                 ipAddress: '',
                 userAgent: navigator.userAgent
             };
-            
+
             this.sendRequest('/api/track/behavior', data);
         },
-        
+
         /**
          * 记录广告展示
          */
@@ -178,10 +178,10 @@
                 position: position,
                 bidPrice: bidPrice
             };
-            
+
             this.sendRequest('/api/track/impression', data);
         },
-        
+
         /**
          * 记录广告点击
          */
@@ -189,10 +189,10 @@
             var data = {
                 impressionId: impressionId
             };
-            
+
             this.sendRequest('/api/track/click', data);
         },
-        
+
         /**
          * 获取推荐广告
          */
@@ -206,7 +206,7 @@
                     category: options.category || '',
                     count: options.count || 5
                 };
-                
+
                 self.sendRequest('/api/ad/recommend', data, function(err, response) {
                     if (err) {
                         reject(err);
@@ -217,6 +217,6 @@
             });
         }
     };
-    
+
     return adTracker;
 })));
