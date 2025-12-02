@@ -1,3 +1,9 @@
+-- 用户表测试数据
+INSERT INTO users (username, password, email, full_name) VALUES
+('admin', '$2a$10$wHjp1ZW.1434ldzDZ9TTb.EeQ5O58H0k7IjH0r/7E.WJ4D49aS73G', 'admin@example.com', '系统管理员'),
+('zhangwei', '$2a$10$wHjp1ZW.1434ldzDZ9TTb.EeQ5O58H0k7IjH0r/7E.WJ4D49aS73G', 'zhangwei@example.com', '张伟'),
+('liwei', '$2a$10$wHjp1ZW.1434ldzDZ9TTb.EeQ5O58H0k7IjH0r/7E.WJ4D49aS73G', 'liwei@example.com', '李伟');
+
 -- 广告商测试数据
 INSERT INTO advertisers (name, contact, email, balance, status) VALUES
 ('科技数码有限公司', '张经理', 'zhang@tech.com', 10000.00, 1),
@@ -102,3 +108,12 @@ INSERT INTO ad_statistics (ad_id, impressions_count, clicks_count, cost, revenue
 (10, 1600, 48, 1760.0000, 2400.0000, '2025-11-18'),
 (11, 950, 19, 855.0000, 1200.0000, '2025-11-18'),
 (12, 1400, 42, 1680.0000, 2300.0000, '2025-11-18');
+
+-- 网站流量统计测试数据
+INSERT INTO traffic_statistics (website, visits, unique_visitors, page_views, date) VALUES
+('shopping', 1500, 1200, 3500, '2025-11-18'),
+('video', 2200, 1800, 4200, '2025-11-18'),
+('news', 1800, 1500, 3200, '2025-11-18'),
+('shopping', 1600, 1300, 3700, '2025-11-19'),
+('video', 2300, 1900, 4400, '2025-11-19'),
+('news', 1900, 1600, 3400, '2025-11-19');

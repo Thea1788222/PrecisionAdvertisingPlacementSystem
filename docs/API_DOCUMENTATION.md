@@ -293,7 +293,71 @@
 
 ## 5. 广告管理平台接口 (ad-management-platform)
 
-### 5.1 广告商管理
+### 5.1 用户认证
+#### 用户注册
+- **URL**: `/api/auth/register`
+- **方法**: POST
+- **描述**: 管理员用户注册（首次使用或添加管理员）
+- **请求参数**:
+```json
+{
+  "username": "string",
+  "password": "string",
+  "email": "string",
+  "fullName": "string"
+}
+```
+- **响应**:
+```json
+{
+  "id": 0,
+  "username": "string",
+  "email": "string",
+  "fullName": "string",
+  "createdAt": "2023-01-01T00:00:00.000Z"
+}
+```
+
+#### 用户登录
+- **URL**: `/api/auth/login`
+- **方法**: POST
+- **描述**: 管理员用户登录获取访问令牌
+- **请求参数**:
+```json
+{
+  "username": "string",
+  "password": "string"
+}
+```
+- **响应**:
+```json
+{
+  "token": "string",
+  "expiresIn": 0,
+  "user": {
+    "id": 0,
+    "username": "string",
+    "email": "string",
+    "fullName": "string"
+  }
+}
+```
+
+#### 用户登出
+- **URL**: `/api/auth/logout`
+- **方法**: POST
+- **描述**: 用户登出系统
+- **请求头**:
+  - Authorization: Bearer \<token\>
+- **响应**:
+```json
+{
+  "success": true,
+  "message": "登出成功"
+}
+```
+
+### 5.2 广告商管理
 #### 获取广告商列表
 - **URL**: `/api/advertisers`
 - **方法**: GET

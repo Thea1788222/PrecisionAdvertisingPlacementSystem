@@ -1,5 +1,18 @@
 CREATE DATABASE IF NOT EXISTS advertising_system;
 USE advertising_system;
+
+-- 用户表
+CREATE TABLE IF NOT EXISTS users (
+                      id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '用户ID',
+                      username VARCHAR(50) NOT NULL UNIQUE COMMENT '用户名',
+                      password VARCHAR(255) NOT NULL COMMENT '密码',
+                      email VARCHAR(100) NOT NULL UNIQUE COMMENT '邮箱',
+                      full_name VARCHAR(100) COMMENT '姓名',
+                      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                      UNIQUE KEY uk_username (username),
+                      UNIQUE KEY uk_email (email)
+) COMMENT '用户信息表';
+
 -- 广告商表
 CREATE TABLE IF NOT EXISTS advertisers (
                              id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '广告商ID',
@@ -103,3 +116,16 @@ CREATE TABLE IF NOT EXISTS ad_statistics (
                                FOREIGN KEY (ad_id) REFERENCES ad_materials(id),
                                UNIQUE KEY uk_ad_date (ad_id, date)
 ) COMMENT '广告统计数据表';
+
+-- 网站流量统计表
+CREATE TABLE IF NOT EXISTS traffic_statistics (
+                                   id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '统计记录ID',
+                                   website VARCHAR(50) NOT NULL COMMENT '网站标识',
+                                   visits INT DEFAULT 0 COMMENT '访问次数',
+                                   unique_visitors INT DEFAULT 0 COMMENT '独立访客数',
+                                   page_views INT DEFAULT 0 COMMENT '页面浏览量',
+                                   date DATE NOT NULL COMMENT '统计日期',
+                                   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                                   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                                   UNIQUE KEY uk_website_date (website, date)
+) COMMENT '网站流量统计表';
