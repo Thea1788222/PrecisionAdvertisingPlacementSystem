@@ -8,9 +8,9 @@ spring:
     name: ad-management-platform
 
   datasource:
-    url: jdbc:mysql://localhost:3306/advertising_system?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
-    username: root
-    password: 123456
+    url: jdbc:mysql://10.100.164.35:3306/advertising_system?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
+    username: remote
+    password: StrongPassword123!
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
       minimum-idle: 5
