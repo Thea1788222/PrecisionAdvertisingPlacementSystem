@@ -26,7 +26,6 @@ public class UserBehaviorServiceTest {
     void testSaveUserBehavior() {
         UserBehavior userBehavior = new UserBehavior();
         userBehavior.setUserFingerprint("test-fingerprint");
-        userBehavior.setCookieId("test-cookie-id");
         userBehavior.setWebsite("test-website");
         userBehavior.setActionType("page_view");
         userBehavior.setTargetId("test-target-id");

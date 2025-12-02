@@ -34,7 +34,7 @@ public class AdRecommendationControllerTest {
     @Test
     void testGetRecommendedAds() throws Exception {
         Map<String, Object> request = new HashMap<>();
-        request.put("cookieId", "test-cookie-id");
+        request.put("userFingerprint", "test-fingerprint");
         request.put("website", "test-website");
         request.put("positions", Arrays.asList("top-banner", "sidebar"));
         request.put("category", "test");

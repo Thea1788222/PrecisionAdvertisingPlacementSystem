@@ -17,10 +17,10 @@ public class AdRecommendationService {
     @Autowired
     private UserProfileService userProfileService;
     
-    public List<AdMaterial> getRecommendedAds(String cookieId, String website, 
+    public List<AdMaterial> getRecommendedAds(String userFingerprint, String website, 
                                             List<String> positions, String category, int count) {
         // 获取用户画像
-        UserProfile userProfile = userProfileService.getUserProfileByCookieId(cookieId);
+        UserProfile userProfile = userProfileService.getUserProfileByFingerprint(userFingerprint);
         
         // 根据类别获取广告素材
         List<AdMaterial> materials = new ArrayList<>();

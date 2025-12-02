@@ -78,13 +78,13 @@ public class TrackController {
         @RequestBody Map<String, Object> request) {
         try {
             Long adId = ((Number) request.get("adId")).longValue();
-            String cookieId = (String) request.get("cookieId");
+            String userFingerprint = (String) request.get("userFingerprint");
             String website = (String) request.get("website");
             String position = (String) request.get("position");
             BigDecimal bidPrice = new BigDecimal(request.get("bidPrice").toString());
             
             AdImpression impression = adImpressionService.saveAdImpression(
-                adId, cookieId, website, position, bidPrice);
+                adId, userFingerprint, website, position, bidPrice);
             
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
@@ -113,6 +113,7 @@ public class TrackController {
         @RequestBody Map<String, Object> request) {
         try {
             Long impressionId = ((Number) request.get("impressionId")).longValue();
+            String userFingerprint = (String) request.get("userFingerprint");
             
             adImpressionService.updateAdClick(impressionId);
             

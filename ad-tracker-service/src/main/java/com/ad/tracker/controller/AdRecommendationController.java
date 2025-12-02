@@ -33,7 +33,7 @@ public class AdRecommendationController {
     public ResponseEntity<Map<String, Object>> getRecommendedAds(
         @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "推荐请求参数") 
         @RequestBody Map<String, Object> request) {
-        String cookieId = (String) request.get("cookieId");
+        String userFingerprint = (String) request.get("userFingerprint");
         String website = (String) request.get("website");
         @SuppressWarnings("unchecked")
         List<String> positions = (List<String>) request.get("positions");
@@ -41,7 +41,7 @@ public class AdRecommendationController {
         int count = ((Number) request.get("count")).intValue();
         
         List<AdMaterial> ads = adRecommendationService.getRecommendedAds(
-            cookieId, website, positions, category, count);
+            userFingerprint, website, positions, category, count);
         
         Map<String, Object> response = new HashMap<>();
         response.put("ads", ads);

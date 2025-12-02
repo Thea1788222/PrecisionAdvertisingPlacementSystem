@@ -16,12 +16,12 @@ public class AdImpressionService {
     @Autowired
     private AdImpressionRepository adImpressionRepository;
     
-    public AdImpression saveAdImpression(Long adId, String cookieId, String website, 
+    public AdImpression saveAdImpression(Long adId, String userFingerprint, String website, 
                                        String position, BigDecimal bidPrice) {
         try {
             AdImpression impression = new AdImpression();
             impression.setAdId(adId);
-            impression.setCookieId(cookieId);
+            impression.setUserFingerprint(userFingerprint);
             impression.setWebsite(website);
             impression.setPosition(position);
             impression.setBidPrice(bidPrice);

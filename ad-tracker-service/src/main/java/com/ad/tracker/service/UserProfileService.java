@@ -13,8 +13,8 @@ public class UserProfileService {
     @Autowired
     private UserProfileRepository userProfileRepository;
     
-    public UserProfile getUserProfileByCookieId(String cookieId) {
-        Optional<UserProfile> profile = userProfileRepository.findByCookieId(cookieId);
+    public UserProfile getUserProfileByFingerprint(String fingerprint) {
+        Optional<UserProfile> profile = userProfileRepository.findByUserFingerprint(fingerprint);
         return profile.orElse(null);
     }
     

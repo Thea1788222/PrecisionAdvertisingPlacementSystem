@@ -9,12 +9,7 @@ cd /Users/DaYang/ProjectCode/JavaDevelopProject/PrecisionAdvertisingPlacementSys
 mvn spring-boot:run
 ```
 
-服务应运行在 `http://localhost:8084`，跨域测试时也可通过 `http://track.test.com:8084` 访问
-
-### 1.2 确认静态资源可访问
-确认以下文件可通过浏览器访问：
-- `http://localhost:8084/ad-tracker.js` - SDK文件
-- `http://localhost:8084/test-sdk.html` - 测试页面
+服务应运行在 `http://localhost:8084`
 
 ## 2. 手动功能测试
 
@@ -32,13 +27,12 @@ http://shop.test.com:8084/test-sdk.html
 ### 2.2 逐步执行测试
 
 #### 步骤1：初始化SDK
-1. 点击"初始化SDK(带域名)"按钮
+1. 点击"初始化SDK"按钮
 2. 检查结果显示区，应显示：
    - SDK初始化成功
    - 追踪服务器地址为 http://track.test.com:8084
    - 网站标识
-   - Cookie域为 .test.com
-   - 生成的Cookie ID
+   - 浏览器指纹
 
 #### 步骤2：用户行为追踪
 1. 点击"记录页面浏览"按钮
@@ -59,16 +53,7 @@ http://shop.test.com:8084/test-sdk.html
 
 #### 步骤5：用户标识信息
 1. 点击"显示用户标识信息"按钮
-2. 观察结果区显示Cookie ID和浏览器指纹信息
-
-## 3. 自动化测试
-
-### 3.1 浏览器控制台测试
-1. 打开测试页面 `http://localhost:8084/test-sdk.html`
-2. 点击"运行自动化测试"按钮
-3. 按F12打开开发者工具
-4. 切换到Console标签页
-5. 查看测试结果输出
+2. 观察结果区显示浏览器指纹信息
 
 ## 4. 验证数据库记录
 
@@ -89,7 +74,7 @@ SELECT * FROM ad_impressions ORDER BY created_at DESC LIMIT 5;
 
 ### 4.3 检查用户画像
 ```sql
-SELECT * FROM user_profiles WHERE cookie_id = '你的测试Cookie ID';
+SELECT * FROM user_profiles WHERE user_fingerprint = '你的测试浏览器指纹';
 ```
 
 应能看到对应的用户画像记录。
@@ -107,13 +92,13 @@ SELECT * FROM user_profiles WHERE cookie_id = '你的测试Cookie ID';
 
 注意：这些域名使用 `.test.com` 后缀以符合现代浏览器的Cookie安全策略。
 
-### 5.2 测试跨域Cookie共享
+### 5.2 测试跨域识别
 1. 访问 `http://shop.test.com:8084/test-sdk.html`
-2. 点击"初始化SDK(带域名)"按钮，确保domain设置为`.test.com`
+2. 点击"初始化SDK"按钮
 3. 执行一些用户行为操作(如记录页面浏览、点击等)
 4. 访问 `http://video.test.com:8084/test-sdk.html`
-5. 点击"初始化SDK(带域名)"按钮
-6. 验证Cookie ID是否保持一致，确保跨域Cookie共享正常工作
+5. 点击"初始化SDK"按钮
+6. 验证浏览器指纹是否保持一致
 
 ## 6. 常见问题排查
 
@@ -136,14 +121,12 @@ SELECT * FROM user_profiles WHERE cookie_id = '你的测试Cookie ID';
 
 通过以下所有检查点即表示SDK测试完成：
 
-- [ ] SDK可以成功初始化，且domain设置为.test.com
-- [ ] 能够生成唯一的用户标识(Cookie ID和浏览器指纹)
+- [ ] SDK可以成功初始化
+- [ ] 能够生成唯一的用户标识(浏览器指纹)
 - [ ] 用户行为可以正确追踪(页面浏览、点击等)
 - [ ] 广告交互可以正确追踪(展示、点击)
 - [ ] 可以成功获取推荐广告
 - [ ] 数据正确存储到数据库
-- [ ] 跨域环境下用户标识保持一致
-- [ ] 所有自动化测试用例通过
 
 ## 8. 测试数据清理
 
@@ -153,11 +136,11 @@ SELECT * FROM user_profiles WHERE cookie_id = '你的测试Cookie ID';
 USE advertising_system;
 
 -- 清理测试用户行为
-DELETE FROM user_behaviors WHERE cookie_id LIKE '%test%';
+DELETE FROM user_behaviors WHERE user_fingerprint LIKE '%test%';
 
 -- 清理测试用户画像
-DELETE FROM user_profiles WHERE cookie_id LIKE '%test%';
+DELETE FROM user_profiles WHERE user_fingerprint LIKE '%test%';
 
 -- 清理测试广告展示记录
-DELETE FROM ad_impressions WHERE cookie_id LIKE '%test%';
+DELETE FROM ad_impressions WHERE user_fingerprint LIKE '%test%';
 ```

@@ -53,7 +53,7 @@
     
     <div class="test-section">
         <h2>1. SDK初始化</h2>
-        <button onclick="initSDKWithDomain()">初始化SDK(带域名)</button>
+        <button onclick="initSDKWithDomain()">初始化SDK</button>
         <p>点击按钮初始化广告追踪SDK，配置追踪服务器地址和网站标识。</p>
     </div>
     
@@ -84,7 +84,7 @@
     <div class="test-section">
         <h2>5. 用户标识信息</h2>
         <button onclick="showUserInfo()">显示用户标识信息</button>
-        <p>显示当前用户的Cookie ID和浏览器指纹信息。</p>
+        <p>显示当前用户的浏览器指纹信息。</p>
     </div>
     
     <div id="result"></div>
@@ -125,14 +125,12 @@
             try {
                 adTracker.init({
                     trackerServer: 'http://track.test.com:8084',
-                    website: 'test-website',
-                    domain: '.test.com'
+                    website: 'test-website'
                 });
                 showResult('SDK初始化成功!\n' +
                           '追踪服务器: http://track.test.com:8084\n' +
                           '网站标识: test-website\n' +
-                          'Cookie域: .test.com\n' +
-                          'Cookie ID: ' + adTracker.config.cookieId);
+                          '浏览器指纹: ' + adTracker.generateFingerprint());
             } catch (error) {
                 showResult('SDK初始化失败: ' + error.message);
             }
@@ -210,7 +208,6 @@
             try {
                 const fingerprint = adTracker.generateFingerprint();
                 showResult('用户标识信息:\n' +
-                          'Cookie ID: ' + adTracker.config.cookieId + '\n' +
                           '浏览器指纹: ' + fingerprint);
             } catch (error) {
                 showResult('获取用户信息失败: ' + error.message);

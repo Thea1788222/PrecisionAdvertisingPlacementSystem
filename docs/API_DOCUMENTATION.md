@@ -141,7 +141,7 @@
 - **请求参数**:
 ```json
 {
-  "cookieId": "string",
+  "id": 0,
   "userFingerprint": "string",
   "website": "string",
   "actionType": "string",
@@ -150,7 +150,8 @@
   "keywords": "string",
   "duration": 0,
   "ipAddress": "string",
-  "userAgent": "string"
+  "userAgent": "string",
+  "createdAt": "2023-01-01T00:00:00.000Z"
 }
 ```
 - **响应**:
@@ -168,11 +169,14 @@
 - **请求参数**:
 ```json
 {
+  "id": 0,
   "adId": 0,
-  "cookieId": "string",
+  "userFingerprint": "string",
   "website": "string",
   "position": "string",
-  "bidPrice": 0.0
+  "isClicked": 0,
+  "bidPrice": 0.0,
+  "createdAt": "2023-01-01T00:00:00.000Z"
 }
 ```
 - **响应**:
@@ -192,7 +196,7 @@
 ```json
 {
   "impressionId": 0,
-  "clickTime": "2023-01-01T00:00:00.000Z"
+  "userFingerprint": "string"
 }
 ```
 - **响应**:
@@ -205,19 +209,18 @@
 
 ### 4.2 用户画像管理
 #### 获取用户画像
-- **URL**: `/api/user/profile/{cookieId}`
+- **URL**: `/api/user/profile/{userFingerprint}`
 - **方法**: GET
-- **描述**: 根据Cookie ID获取用户画像
+- **描述**: 根据浏览器指纹获取用户画像
 - **路径参数**:
-  - cookieId: Cookie ID
+  - userFingerprint: 用户浏览器指纹
 - **响应**:
 ```json
 {
   "id": 0,
-  "cookieId": "string",
   "userFingerprint": "string",
-  "interests": {},
-  "categories": [],
+  "interests": "string",
+  "categories": "string",
   "behaviorScore": 0,
   "lastActive": "2023-01-01T00:00:00.000Z",
   "createdAt": "2023-01-01T00:00:00.000Z"
@@ -231,11 +234,13 @@
 - **请求参数**:
 ```json
 {
-  "cookieId": "string",
+  "id": 0,
   "userFingerprint": "string",
-  "interests": {},
-  "categories": [],
-  "behaviorScore": 0
+  "interests": "string",
+  "categories": "string",
+  "behaviorScore": 0,
+  "lastActive": "2023-01-01T00:00:00.000Z",
+  "createdAt": "2023-01-01T00:00:00.000Z"
 }
 ```
 - **响应**:
@@ -254,7 +259,7 @@
 - **请求参数**:
 ```json
 {
-  "cookieId": "string",
+  "userFingerprint": "string",
   "website": "string",
   "positions": ["string"],
   "category": "string",
@@ -267,6 +272,7 @@
   "ads": [
     {
       "id": 0,
+      "advertiserId": 0,
       "title": "string",
       "type": "string",
       "imageUrl": "string",
@@ -276,7 +282,10 @@
       "height": 0,
       "duration": 0,
       "category": "string",
-      "bidPrice": 0.0
+      "targetInterest": "string",
+      "bidPrice": 0.0,
+      "status": 0,
+      "createdAt": "2023-01-01T00:00:00.000Z"
     }
   ]
 }

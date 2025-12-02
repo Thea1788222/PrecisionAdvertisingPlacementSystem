@@ -34,7 +34,6 @@ public class AdRecommendationServiceTest {
         // 准备测试数据
         UserProfile profile = new UserProfile();
         profile.setId(1L);
-        profile.setCookieId("test-cookie-id");
         profile.setUserFingerprint("test-fingerprint");
         profile.setInterests("test,interests");
         profile.setCategories("test,categories");
@@ -56,19 +55,19 @@ public class AdRecommendationServiceTest {
         materials.add(material);
         
         // 设置mock行为
-        when(userProfileService.getUserProfileByCookieId("test-cookie-id")).thenReturn(profile);
+        when(userProfileService.getUserProfileByFingerprint("test-fingerprint")).thenReturn(profile);
         when(adMaterialRepository.findByCategoryAndStatusOrderByBidPriceDesc("test", 1)).thenReturn(materials);
         
         // 调用被测试方法
         List<AdMaterial> result = adRecommendationService.getRecommendedAds(
-            "test-cookie-id", "test-website", List.of("top-banner"), "test", 5);
+            "test-fingerprint", "test-website", List.of("top-banner"), "test", 5);
         
         // 验证结果
         assert result.size() == 1;
         assert result.get(0).getId().equals(1L);
         assert result.get(0).getTitle().equals("Test Ad");
         
-        verify(userProfileService, times(1)).getUserProfileByCookieId("test-cookie-id");
+        verify(userProfileService, times(1)).getUserProfileByFingerprint("test-fingerprint");
         verify(adMaterialRepository, times(1)).findByCategoryAndStatusOrderByBidPriceDesc("test", 1);
     }
 }

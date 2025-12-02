@@ -1,11 +1,6 @@
 package com.ad.tracker.integration;
 
 import com.ad.tracker.AdTrackerServiceApplication;
-import com.ad.tracker.model.AdMaterial;
-import com.ad.tracker.model.UserProfile;
-import com.ad.tracker.repository.AdMaterialRepository;
-import com.ad.tracker.repository.UserProfileRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -14,7 +9,6 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.*;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,50 +23,12 @@ public class AdTrackerIntegrationTest {
 
     @Autowired
     private TestRestTemplate restTemplate;
-    
-    @Autowired
-    private UserProfileRepository userProfileRepository;
-    
-    @Autowired
-    private AdMaterialRepository adMaterialRepository;
 
     private String baseUrl;
 
-    @BeforeEach
-    public void setUp() {
-        baseUrl = "http://localhost:" + port;
-        
-        // 清理测试数据
-        adMaterialRepository.deleteAll();
-        userProfileRepository.deleteAll();
-        
-        // 初始化测试数据
-        initTestData();
-    }
-
-    private void initTestData() {
-        // 创建测试用户画像
-        UserProfile userProfile = new UserProfile();
-        userProfile.setCookieId("test-cookie-id");
-        userProfile.setUserFingerprint("test-fingerprint");
-        userProfile.setInterests("electronics,technology");
-        userProfile.setCategories("shopping,tech");
-        userProfile.setBehaviorScore(80);
-        userProfileRepository.save(userProfile);
-        
-        // 创建测试广告素材
-        AdMaterial adMaterial = new AdMaterial();
-        adMaterial.setAdvertiserId(1L);
-        adMaterial.setTitle("测试广告");
-        adMaterial.setType("banner");
-        adMaterial.setImageUrl("http://example.com/test-ad.jpg");
-        adMaterial.setLinkUrl("http://example.com");
-        adMaterial.setWidth(300);
-        adMaterial.setHeight(250);
-        adMaterial.setCategory("electronics");
-        adMaterial.setBidPrice(new BigDecimal("1.50"));
-        adMaterial.setStatus(1);
-        adMaterialRepository.save(adMaterial);
+    public AdTrackerIntegrationTest() {
+        // 在构造函数中初始化baseUrl
+        this.baseUrl = "http://localhost:" + port;
     }
 
     @Test
@@ -96,7 +52,6 @@ public class AdTrackerIntegrationTest {
     private void testTrackUserBehavior() {
         Map<String, Object> behaviorData = new HashMap<>();
         behaviorData.put("userFingerprint", "test-fingerprint");
-        behaviorData.put("cookieId", "test-cookie-id");
         behaviorData.put("website", "shopping-website");
         behaviorData.put("actionType", "page_view");
         behaviorData.put("targetId", "product-123");
@@ -115,7 +70,7 @@ public class AdTrackerIntegrationTest {
 
     private void testGetRecommendedAds() {
         Map<String, Object> recommendData = new HashMap<>();
-        recommendData.put("cookieId", "test-cookie-id");
+        recommendData.put("userFingerprint", "test-fingerprint");
         recommendData.put("website", "shopping-website");
         recommendData.put("positions", new String[]{"top-banner"});
         recommendData.put("category", "electronics");
@@ -131,7 +86,7 @@ public class AdTrackerIntegrationTest {
     private Long testTrackAdImpression() {
         Map<String, Object> impressionData = new HashMap<>();
         impressionData.put("adId", 1);
-        impressionData.put("cookieId", "test-cookie-id");
+        impressionData.put("userFingerprint", "test-fingerprint");
         impressionData.put("website", "shopping-website");
         impressionData.put("position", "top-banner");
         impressionData.put("bidPrice", "1.50");
@@ -149,6 +104,7 @@ public class AdTrackerIntegrationTest {
     private void testTrackAdClick(Long impressionId) {
         Map<String, Object> clickData = new HashMap<>();
         clickData.put("impressionId", impressionId);
+        clickData.put("userFingerprint", "test-fingerprint");
 
         ResponseEntity<Map> response = restTemplate.postForEntity(
             baseUrl + "/api/track/click", clickData, Map.class);
@@ -159,7 +115,6 @@ public class AdTrackerIntegrationTest {
 
     private void testUpdateUserProfile() {
         Map<String, Object> profileData = new HashMap<>();
-        profileData.put("cookieId", "test-cookie-id");
         profileData.put("userFingerprint", "test-fingerprint");
         profileData.put("interests", "electronics,phones,technology");
         profileData.put("categories", "shopping,tech");

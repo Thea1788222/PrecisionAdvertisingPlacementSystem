@@ -34,26 +34,24 @@ public class UserProfileControllerTest {
     void testGetUserProfile() throws Exception {
         UserProfile profile = new UserProfile();
         profile.setId(1L);
-        profile.setCookieId("test-cookie-id");
         profile.setUserFingerprint("test-fingerprint");
         profile.setInterests("test,interests");
         profile.setCategories("test,categories");
         profile.setBehaviorScore(80);
 
-        when(userProfileService.getUserProfileByCookieId("test-cookie-id")).thenReturn(profile);
+        when(userProfileService.getUserProfileByFingerprint("test-fingerprint")).thenReturn(profile);
 
-        mockMvc.perform(get("/api/user/profile/test-cookie-id"))
+        mockMvc.perform(get("/api/user/profile/test-fingerprint"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
-                .andExpect(jsonPath("$.cookieId").value("test-cookie-id"));
+                .andExpect(jsonPath("$.userFingerprint").value("test-fingerprint"));
 
-        verify(userProfileService, times(1)).getUserProfileByCookieId("test-cookie-id");
+        verify(userProfileService, times(1)).getUserProfileByFingerprint("test-fingerprint");
     }
 
     @Test
     void testUpdateUserProfile() throws Exception {
         UserProfile profile = new UserProfile();
-        profile.setCookieId("test-cookie-id");
         profile.setUserFingerprint("test-fingerprint");
         profile.setInterests("test,interests");
         profile.setCategories("test,categories");

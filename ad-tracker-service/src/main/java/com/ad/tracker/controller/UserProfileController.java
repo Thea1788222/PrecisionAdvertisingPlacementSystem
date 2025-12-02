@@ -25,15 +25,15 @@ public class UserProfileController {
     /**
      * 获取用户画像
      */
-    @GetMapping("/profile/{cookieId}")
-    @Operation(summary = "获取用户画像", description = "根据Cookie ID获取用户画像信息")
+    @GetMapping("/profile/{userFingerprint}")
+    @Operation(summary = "获取用户画像", description = "根据浏览器指纹获取用户画像信息")
     @ApiResponse(responseCode = "200", description = "用户画像获取成功", 
         content = @Content(mediaType = "application/json", 
             schema = @Schema(implementation = UserProfile.class)))
     public ResponseEntity<UserProfile> getUserProfile(
-        @Parameter(description = "用户Cookie ID") 
-        @PathVariable String cookieId) {
-        UserProfile profile = userProfileService.getUserProfileByCookieId(cookieId);
+        @Parameter(description = "用户浏览器指纹") 
+        @PathVariable String userFingerprint) {
+        UserProfile profile = userProfileService.getUserProfileByFingerprint(userFingerprint);
         return ResponseEntity.ok(profile);
     }
     

@@ -16,8 +16,7 @@ public class CorsConfig {
                 registry.addMapping("/**")                        // 所有接口都允许跨域
                         .allowedOrigins("http://localhost:5173")  // 指定前端地址
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS") // 允许方法
-                        .allowedHeaders("*")                     // 允许请求头
-                        .allowCredentials(true);                 // 允许携带 Cookie
+                        .allowedHeaders("*");                     // 允许请求头
             }
         };
     }

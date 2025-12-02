@@ -29,12 +29,11 @@ public class UserBehaviorService {
     
     private void updateUserProfile(UserBehavior userBehavior) {
         // 查找现有用户画像
-        UserProfile userProfile = userProfileRepository.findByCookieId(userBehavior.getCookieId())
+        UserProfile userProfile = userProfileRepository.findByUserFingerprint(userBehavior.getUserFingerprint())
                 .orElse(new UserProfile());
         
         // 如果是新用户画像，设置基本属性
         if (userProfile.getId() == null) {
-            userProfile.setCookieId(userBehavior.getCookieId());
             userProfile.setUserFingerprint(userBehavior.getUserFingerprint());
             userProfile.setInterests(userBehavior.getCategory());
             userProfile.setCategories(userBehavior.getCategory());

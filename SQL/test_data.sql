@@ -44,49 +44,49 @@ INSERT INTO ad_materials (advertiser_id, title, type, image_url, video_url, link
 (5, '特色餐厅推荐', 'native', 'https://example.com/images/restaurant.jpg', NULL, 'https://food.example.com/restaurants', NULL, NULL, NULL, 'food', 'food', 1.4000, 1);
 
 -- 用户画像测试数据
-INSERT INTO user_profiles (cookie_id, user_fingerprint, interests, categories, behavior_score, last_active) VALUES
-('cookie_001', 'fingerprint_001', '{"electronics": 0.9, "technology": 0.8}', '["electronics", "technology"]', 95, NOW()),
-('cookie_002', 'fingerprint_002', '{"fashion": 0.7, "sports": 0.6}', '["fashion", "sports"]', 80, NOW()),
-('cookie_003', 'fingerprint_003', '{"home": 0.8, "food": 0.7}', '["home", "food"]', 85, NOW()),
-('cookie_004', 'fingerprint_004', '{"sports": 0.9, "electronics": 0.6}', '["sports", "electronics"]', 90, NOW()),
-('cookie_005', 'fingerprint_005', '{"fashion": 0.8, "home": 0.5}', '["fashion", "home"]', 75, NOW());
+INSERT INTO user_profiles (user_fingerprint, interests, categories, behavior_score, last_active) VALUES
+('fingerprint_001', '{"electronics": 0.9, "technology": 0.8}', '["electronics", "technology"]', 95, NOW()),
+('fingerprint_002', '{"fashion": 0.7, "sports": 0.6}', '["fashion", "sports"]', 80, NOW()),
+('fingerprint_003', '{"home": 0.8, "food": 0.7}', '["home", "food"]', 85, NOW()),
+('fingerprint_004', '{"sports": 0.9, "electronics": 0.6}', '["sports", "electronics"]', 90, NOW()),
+('fingerprint_005', '{"fashion": 0.8, "home": 0.5}', '["fashion", "home"]', 75, NOW());
 
 -- 用户行为测试数据
-INSERT INTO user_behaviors (user_fingerprint, cookie_id, website, action_type, target_id, category, keywords, duration, ip_address, user_agent) VALUES
+INSERT INTO user_behaviors (user_fingerprint, website, action_type, target_id, category, keywords, duration, ip_address, user_agent) VALUES
 -- 用户1的行为数据
-('fingerprint_001', 'cookie_001', 'shopping', 'view', 'product_1001', 'electronics', '智能手机', 120, '192.168.1.101', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'),
-('fingerprint_001', 'cookie_001', 'shopping', 'view', 'product_1002', 'electronics', '笔记本电脑', 90, '192.168.1.101', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'),
-('fingerprint_001', 'cookie_001', 'shopping', 'click', 'ad_1', 'electronics', NULL, 5, '192.168.1.101', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'),
-('fingerprint_001', 'cookie_001', 'video', 'watch', 'video_2001', 'technology', '科技评测', 300, '192.168.1.101', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'),
+('fingerprint_001', 'shopping', 'view', 'product_1001', 'electronics', '智能手机', 120, '192.168.1.101', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'),
+('fingerprint_001', 'shopping', 'view', 'product_1002', 'electronics', '笔记本电脑', 90, '192.168.1.101', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'),
+('fingerprint_001', 'shopping', 'click', 'ad_1', 'electronics', NULL, 5, '192.168.1.101', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'),
+('fingerprint_001', 'video', 'watch', 'video_2001', 'technology', '科技评测', 300, '192.168.1.101', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'),
 
 -- 用户2的行为数据
-('fingerprint_002', 'cookie_002', 'shopping', 'view', 'product_1003', 'fashion', '夏季女装', 80, '192.168.1.102', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'),
-('fingerprint_002', 'cookie_002', 'shopping', 'search', NULL, 'fashion', '男士西装', 30, '192.168.1.102', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'),
-('fingerprint_002', 'cookie_002', 'video', 'watch', 'video_2002', 'sports', '健身教程', 420, '192.168.1.102', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'),
+('fingerprint_002', 'shopping', 'view', 'product_1003', 'fashion', '夏季女装', 80, '192.168.1.102', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'),
+('fingerprint_002', 'shopping', 'search', NULL, 'fashion', '男士西装', 30, '192.168.1.102', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'),
+('fingerprint_002', 'video', 'watch', 'video_2002', 'sports', '健身教程', 420, '192.168.1.102', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'),
 
 -- 用户3的行为数据
-('fingerprint_003', 'cookie_003', 'news', 'view', 'news_3001', 'home', '家居装饰', 150, '192.168.1.103', 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/537.36'),
-('fingerprint_003', 'cookie_003', 'news', 'view', 'news_3002', 'food', '美食推荐', 110, '192.168.1.103', 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/537.36'),
-('fingerprint_003', 'cookie_003', 'shopping', 'click', 'ad_10', 'food', NULL, 8, '192.168.1.103', 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/537.36'),
+('fingerprint_003', 'news', 'view', 'news_3001', 'home', '家居装饰', 150, '192.168.1.103', 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/537.36'),
+('fingerprint_003', 'news', 'view', 'news_3002', 'food', '美食推荐', 110, '192.168.1.103', 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/537.36'),
+('fingerprint_003', 'shopping', 'click', 'ad_10', 'food', NULL, 8, '192.168.1.103', 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/537.36'),
 
 -- 用户4的行为数据
-('fingerprint_004', 'cookie_004', 'video', 'watch', 'video_2003', 'sports', '篮球教学', 540, '192.168.1.104', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'),
-('fingerprint_004', 'cookie_004', 'shopping', 'view', 'product_1004', 'sports', '运动鞋', 95, '192.168.1.104', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'),
+('fingerprint_004', 'video', 'watch', 'video_2003', 'sports', '篮球教学', 540, '192.168.1.104', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'),
+('fingerprint_004', 'shopping', 'view', 'product_1004', 'sports', '运动鞋', 95, '192.168.1.104', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'),
 
 -- 用户5的行为数据
-('fingerprint_005', 'cookie_005', 'shopping', 'search', NULL, 'fashion', '连衣裙', 45, '192.168.1.105', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'),
-('fingerprint_005', 'cookie_005', 'shopping', 'view', 'product_1005', 'home', '家居用品', 75, '192.168.1.105', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36');
+('fingerprint_005', 'shopping', 'search', NULL, 'fashion', '连衣裙', 45, '192.168.1.105', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'),
+('fingerprint_005', 'shopping', 'view', 'product_1005', 'home', '家居用品', 75, '192.168.1.105', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36');
 
 -- 广告投放记录测试数据
-INSERT INTO ad_impressions (ad_id, cookie_id, website, position, is_clicked, bid_price) VALUES
-(1, 'cookie_001', 'shopping', 'sidebar', 1, 1.5000),
-(2, 'cookie_001', 'shopping', 'top-banner', 0, 2.0000),
-(5, 'cookie_002', 'shopping', 'sidebar', 1, 1.8000),
-(10, 'cookie_003', 'shopping', 'product-detail', 1, 1.1000),
-(7, 'cookie_004', 'video', 'pre-roll', 0, 2.8000),
-(4, 'cookie_005', 'shopping', 'sidebar', 0, 1.2000),
-(1, 'cookie_001', 'shopping', 'sidebar', 1, 1.5000),
-(3, 'cookie_004', 'video', 'mid-roll', 1, 3.5000);
+INSERT INTO ad_impressions (ad_id, user_fingerprint, website, position, is_clicked, bid_price) VALUES
+(1, 'fingerprint_001', 'shopping', 'sidebar', 1, 1.5000),
+(2, 'fingerprint_001', 'shopping', 'top-banner', 0, 2.0000),
+(5, 'fingerprint_002', 'shopping', 'sidebar', 1, 1.8000),
+(10, 'fingerprint_003', 'shopping', 'product-detail', 1, 1.1000),
+(7, 'fingerprint_004', 'video', 'pre-roll', 0, 2.8000),
+(4, 'fingerprint_005', 'shopping', 'sidebar', 0, 1.2000),
+(1, 'fingerprint_001', 'shopping', 'sidebar', 1, 1.5000),
+(3, 'fingerprint_004', 'video', 'mid-roll', 1, 3.5000);
 
 -- 广告统计数据测试数据
 INSERT INTO ad_statistics (ad_id, impressions_count, clicks_count, cost, revenue, date) VALUES
