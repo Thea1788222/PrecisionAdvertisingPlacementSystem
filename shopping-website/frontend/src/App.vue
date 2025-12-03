@@ -1,9 +1,14 @@
 <script setup>
 import { RouterLink, RouterView } from 'vue-router'
 import HelloWorld from './components/HelloWorld.vue'
+import Header from './components/Header.vue'  // 添加这行
 </script>
 
 <template>
+  <!-- 添加我们的Header组件 -->
+  <Header />
+
+  <!-- 保留原有的Vue欢迎页面结构 -->
   <header>
     <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
 
@@ -21,6 +26,7 @@ import HelloWorld from './components/HelloWorld.vue'
 </template>
 
 <style scoped>
+/* 保留所有原有样式 */
 header {
   line-height: 1.5;
   max-height: 100vh;
