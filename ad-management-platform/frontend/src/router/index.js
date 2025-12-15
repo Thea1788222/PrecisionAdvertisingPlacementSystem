@@ -1,23 +1,76 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
+import LoginView from '../views/LoginView.vue'
+import RegisterView from '../views/RegisterView.vue'
+import Layout from '../layouts/Layout.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: '/',
-      name: 'home',
-      component: HomeView,
+      redirect: '/login'
     },
     {
-      path: '/about',
-      name: 'about',
-      // route level code-splitting
-      // this generates a separate chunk (About.[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
-      component: () => import('../views/AboutView.vue'),
+      path: '/login',
+      name: 'login',
+      component: LoginView
     },
-  ],
+    {
+      path: '/register',
+      name: 'register',
+      component: RegisterView
+    },
+    {
+      path: '/',
+      component: Layout,
+      children: [
+        {
+          path: '/dashboard',
+          name: 'dashboard',
+          component: () => import('../views/DashboardView.vue')
+        },
+        {
+          path: '/materials',
+          name: 'materials',
+          component: () => import('../views/MaterialsView.vue')
+        },
+        {
+          path: '/positions',
+          name: 'positions',
+          component: () => import('../views/PositionsView.vue')
+        },
+        {
+          path: '/advertisers',
+          name: 'advertisers',
+          component: () => import('../views/AdvertisersView.vue')
+        },
+        {
+          path: '/statistics',
+          name: 'statistics',
+          component: () => import('../views/StatisticsView.vue')
+        }
+      ]
+    }
+  ]
+})
+
+// 添加路由守卫
+router.beforeEach((to, from, next) => {
+  const token = localStorage.getItem('token')
+  
+  // 如果访问的是登录或注册页面，且已经登录，则重定向到仪表板
+  if ((to.name === 'login' || to.name === 'register') && token) {
+    next({ name: 'dashboard' })
+    return
+  }
+  
+  // 如果访问其他页面但没有登录，则重定向到登录页
+  if (to.name !== 'login' && to.name !== 'register' && !token) {
+    next({ name: 'login' })
+    return
+  }
+  
+  next()
 })
 
 export default router
