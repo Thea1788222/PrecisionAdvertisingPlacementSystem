@@ -2,8 +2,8 @@ package com.ad.tracker.controller;
 
 import com.ad.tracker.model.UserBehavior;
 import com.ad.tracker.model.AdImpression;
-import com.ad.tracker.service.impl.AdImpressionServiceImpl;
-import com.ad.tracker.service.impl.UserBehaviorServiceImpl;
+import com.ad.tracker.service.AdImpressionService;
+import com.ad.tracker.service.UserBehaviorService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -26,10 +26,10 @@ public class TrackController {
     private static final Logger logger = Logger.getLogger(TrackController.class.getName());
     
     @Autowired
-    private UserBehaviorServiceImpl userBehaviorServiceImpl;
+    private UserBehaviorService userBehaviorService;
     
     @Autowired
-    private AdImpressionServiceImpl adImpressionServiceImpl;
+    private AdImpressionService adImpressionService;
     
     /**
      * 记录用户行为
@@ -42,9 +42,8 @@ public class TrackController {
     public ResponseEntity<Map<String, Object>> trackBehavior(
         @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "用户行为信息") 
         @RequestBody UserBehavior userBehavior) {
-
         try {
-            userBehaviorServiceImpl.saveUserBehavior(userBehavior);
+            userBehaviorService.saveUserBehavior(userBehavior);
 
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
@@ -78,7 +77,7 @@ public class TrackController {
             String position = (String) request.get("position");
             BigDecimal bidPrice = new BigDecimal(request.get("bidPrice").toString());
             
-            AdImpression impression = adImpressionServiceImpl.saveAdImpression(
+            AdImpression impression = adImpressionService.saveAdImpression(
                 adId, userFingerprint, website, position, bidPrice);
             
             Map<String, Object> response = new HashMap<>();
@@ -110,7 +109,7 @@ public class TrackController {
         try {
             Long impressionId = ((Number) request.get("impressionId")).longValue();
             
-            adImpressionServiceImpl.updateAdClick(impressionId);
+            adImpressionService.updateAdClick(impressionId);
             
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);

@@ -11,6 +11,13 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface AdvertiserRepository extends JpaRepository<Advertiser, Long> {
     
+    /**
+     * 根据广告主名称分页查询广告主
+     *
+     * @param name     广告主名称（可选）
+     * @param pageable 分页信息
+     * @return 符合条件的广告主分页列表
+     */
     @Query("SELECT a FROM Advertiser a WHERE " +
            "(:name IS NULL OR a.name LIKE %:name%)")
     Page<Advertiser> findByNameContainingIgnoreCase(

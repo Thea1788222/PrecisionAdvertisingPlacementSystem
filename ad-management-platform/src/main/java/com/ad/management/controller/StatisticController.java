@@ -3,6 +3,7 @@ package com.ad.management.controller;
 import com.ad.management.model.AdStatistic;
 import com.ad.management.model.TrafficStatistic;
 import com.ad.management.service.StatisticService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,13 +13,18 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/statistics")
 public class StatisticController {
-    
-    private final StatisticService statisticService;
-    
-    public StatisticController(StatisticService statisticService) {
-        this.statisticService = statisticService;
-    }
-    
+
+    @Autowired
+    private StatisticService statisticService;
+
+    /**
+     * 获取广告主广告统计数据
+     *
+     * @param adId     广告ID（可选）
+     * @param startDate 开始日期（可选）
+     * @param endDate   结束日期（可选）
+     * @return 广告主广告统计数据列表
+     */
     @GetMapping("/ads")
     public ResponseEntity<List<AdStatistic>> getAdStatistics(
             @RequestParam(required = false) Long adId,
@@ -28,7 +34,15 @@ public class StatisticController {
         List<AdStatistic> statistics = statisticService.getAdStatistics(adId, startDate, endDate);
         return ResponseEntity.ok(statistics);
     }
-    
+
+    /**
+     * 获取网站流量统计数据
+     *
+     * @param website   网站名称（可选）
+     * @param startDate 开始日期（可选）
+     * @param endDate   结束日期（可选）
+     * @return 网站流量统计数据列表
+     */
     @GetMapping("/traffic")
     public ResponseEntity<List<TrafficStatistic>> getTrafficStatistics(
             @RequestParam(required = false) String website,

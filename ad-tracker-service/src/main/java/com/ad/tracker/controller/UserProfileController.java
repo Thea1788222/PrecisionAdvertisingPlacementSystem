@@ -1,7 +1,7 @@
 package com.ad.tracker.controller;
 
 import com.ad.tracker.model.UserProfile;
-import com.ad.tracker.service.impl.UserProfileServiceImpl;
+import com.ad.tracker.service.UserProfileService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -20,7 +20,7 @@ import java.util.Map;
 public class UserProfileController {
     
     @Autowired
-    private UserProfileServiceImpl userProfileServiceImpl;
+    private UserProfileService userProfileService;
     
     /**
      * 获取用户画像
@@ -34,7 +34,7 @@ public class UserProfileController {
         @Parameter(description = "用户浏览器指纹") 
         @PathVariable String userFingerprint) {
 
-        UserProfile profile = userProfileServiceImpl.getUserProfileByFingerprint(userFingerprint);
+        UserProfile profile = userProfileService.getUserProfileByFingerprint(userFingerprint);
         return ResponseEntity.ok(profile);
     }
     
@@ -50,7 +50,7 @@ public class UserProfileController {
         @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "用户画像信息") 
         @RequestBody UserProfile userProfile) {
 
-        userProfileServiceImpl.saveUserProfile(userProfile);
+        userProfileService.saveUserProfile(userProfile);
         
         Map<String, Object> response = new HashMap<>();
         response.put("success", true);
