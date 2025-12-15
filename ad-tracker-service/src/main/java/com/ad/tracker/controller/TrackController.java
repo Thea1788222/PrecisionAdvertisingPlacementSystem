@@ -2,12 +2,9 @@ package com.ad.tracker.controller;
 
 import com.ad.tracker.model.UserBehavior;
 import com.ad.tracker.model.AdImpression;
-import com.ad.tracker.service.UserBehaviorService;
-import com.ad.tracker.service.AdImpressionService;
-import com.ad.tracker.service.AdRecommendationService;
-import com.ad.tracker.model.AdMaterial;
+import com.ad.tracker.service.impl.AdImpressionServiceImpl;
+import com.ad.tracker.service.impl.UserBehaviorServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -16,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
-import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.logging.Logger;
@@ -30,13 +26,10 @@ public class TrackController {
     private static final Logger logger = Logger.getLogger(TrackController.class.getName());
     
     @Autowired
-    private UserBehaviorService userBehaviorService;
+    private UserBehaviorServiceImpl userBehaviorServiceImpl;
     
     @Autowired
-    private AdImpressionService adImpressionService;
-    
-    @Autowired
-    private AdRecommendationService adRecommendationService;
+    private AdImpressionServiceImpl adImpressionServiceImpl;
     
     /**
      * 记录用户行为
@@ -49,9 +42,10 @@ public class TrackController {
     public ResponseEntity<Map<String, Object>> trackBehavior(
         @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "用户行为信息") 
         @RequestBody UserBehavior userBehavior) {
+
         try {
-            userBehaviorService.saveUserBehavior(userBehavior);
-            
+            userBehaviorServiceImpl.saveUserBehavior(userBehavior);
+
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("message", "行为记录成功");
@@ -76,6 +70,7 @@ public class TrackController {
     public ResponseEntity<Map<String, Object>> trackImpression(
         @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "广告展示信息") 
         @RequestBody Map<String, Object> request) {
+
         try {
             Long adId = ((Number) request.get("adId")).longValue();
             String userFingerprint = (String) request.get("userFingerprint");
@@ -83,7 +78,7 @@ public class TrackController {
             String position = (String) request.get("position");
             BigDecimal bidPrice = new BigDecimal(request.get("bidPrice").toString());
             
-            AdImpression impression = adImpressionService.saveAdImpression(
+            AdImpression impression = adImpressionServiceImpl.saveAdImpression(
                 adId, userFingerprint, website, position, bidPrice);
             
             Map<String, Object> response = new HashMap<>();
@@ -111,11 +106,11 @@ public class TrackController {
     public ResponseEntity<Map<String, Object>> trackClick(
         @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "广告点击信息") 
         @RequestBody Map<String, Object> request) {
+
         try {
             Long impressionId = ((Number) request.get("impressionId")).longValue();
-            String userFingerprint = (String) request.get("userFingerprint");
             
-            adImpressionService.updateAdClick(impressionId);
+            adImpressionServiceImpl.updateAdClick(impressionId);
             
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);

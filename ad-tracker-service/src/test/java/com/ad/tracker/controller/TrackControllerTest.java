@@ -2,10 +2,9 @@ package com.ad.tracker.controller;
 
 import com.ad.tracker.model.UserBehavior;
 import com.ad.tracker.model.AdImpression;
-import com.ad.tracker.service.UserBehaviorService;
-import com.ad.tracker.service.AdImpressionService;
-import com.ad.tracker.service.AdRecommendationService;
-import com.ad.tracker.model.AdMaterial;
+import com.ad.tracker.service.impl.AdImpressionServiceImpl;
+import com.ad.tracker.service.impl.UserBehaviorServiceImpl;
+import com.ad.tracker.service.impl.AdRecommendationServiceImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,13 +29,13 @@ public class TrackControllerTest {
     private MockMvc mockMvc;
 
     @MockBean
-    private UserBehaviorService userBehaviorService;
+    private UserBehaviorServiceImpl userBehaviorService;
 
     @MockBean
-    private AdImpressionService adImpressionService;
+    private AdImpressionServiceImpl adImpressionService;
 
     @MockBean
-    private AdRecommendationService adRecommendationService;
+    private AdRecommendationServiceImpl adRecommendationService;
 
     @Autowired
     private ObjectMapper objectMapper;

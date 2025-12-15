@@ -3,6 +3,8 @@ package com.ad.tracker.service;
 import com.ad.tracker.model.AdMaterial;
 import com.ad.tracker.model.UserProfile;
 import com.ad.tracker.repository.AdMaterialRepository;
+import com.ad.tracker.service.impl.AdRecommendationServiceImpl;
+import com.ad.tracker.service.impl.UserProfileServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -12,7 +14,6 @@ import org.springframework.test.context.ActiveProfiles;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import static org.mockito.Mockito.*;
 
@@ -21,13 +22,13 @@ import static org.mockito.Mockito.*;
 public class AdRecommendationServiceTest {
 
     @Autowired
-    private AdRecommendationService adRecommendationService;
+    private AdRecommendationServiceImpl adRecommendationService;
 
     @MockBean
     private AdMaterialRepository adMaterialRepository;
     
     @MockBean
-    private UserProfileService userProfileService;
+    private UserProfileServiceImpl userProfileService;
 
     @Test
     void testGetRecommendedAds() {

@@ -2,13 +2,13 @@ package com.ad.tracker.service;
 
 import com.ad.tracker.model.UserProfile;
 import com.ad.tracker.repository.UserProfileRepository;
+import com.ad.tracker.service.impl.UserProfileServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.mockito.Mockito.*;
@@ -18,7 +18,7 @@ import static org.mockito.Mockito.*;
 public class UserProfileServiceTest {
 
     @Autowired
-    private UserProfileService userProfileService;
+    private UserProfileServiceImpl userProfileService;
 
     @MockBean
     private UserProfileRepository userProfileRepository;

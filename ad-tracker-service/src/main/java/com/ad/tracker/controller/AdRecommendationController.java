@@ -1,7 +1,7 @@
 package com.ad.tracker.controller;
 
 import com.ad.tracker.model.AdMaterial;
-import com.ad.tracker.service.AdRecommendationService;
+import com.ad.tracker.service.impl.AdRecommendationServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -20,7 +20,7 @@ import java.util.HashMap;
 public class AdRecommendationController {
     
     @Autowired
-    private AdRecommendationService adRecommendationService;
+    private AdRecommendationServiceImpl adRecommendationServiceImpl;
     
     /**
      * 获取推荐广告
@@ -33,6 +33,7 @@ public class AdRecommendationController {
     public ResponseEntity<Map<String, Object>> getRecommendedAds(
         @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "推荐请求参数") 
         @RequestBody Map<String, Object> request) {
+
         String userFingerprint = (String) request.get("userFingerprint");
         String website = (String) request.get("website");
         @SuppressWarnings("unchecked")
@@ -40,7 +41,7 @@ public class AdRecommendationController {
         String category = (String) request.get("category");
         int count = ((Number) request.get("count")).intValue();
         
-        List<AdMaterial> ads = adRecommendationService.getRecommendedAds(
+        List<AdMaterial> ads = adRecommendationServiceImpl.getRecommendedAds(
             userFingerprint, website, positions, category, count);
         
         Map<String, Object> response = new HashMap<>();

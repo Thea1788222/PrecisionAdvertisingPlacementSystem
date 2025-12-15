@@ -2,6 +2,7 @@ package com.ad.tracker.service;
 
 import com.ad.tracker.model.AdImpression;
 import com.ad.tracker.repository.AdImpressionRepository;
+import com.ad.tracker.service.impl.AdImpressionServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -18,7 +19,7 @@ import static org.mockito.Mockito.*;
 public class AdImpressionServiceTest {
 
     @Autowired
-    private AdImpressionService adImpressionService;
+    private AdImpressionServiceImpl adImpressionService;
 
     @MockBean
     private AdImpressionRepository adImpressionRepository;
