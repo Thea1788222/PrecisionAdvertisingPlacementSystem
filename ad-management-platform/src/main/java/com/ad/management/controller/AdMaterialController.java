@@ -27,6 +27,7 @@ public class AdMaterialController {
      * @param type 素材类型
      * @param category 素材分类
      * @param status 素材状态
+     * @param keyword 搜索关键词
      * @return 广告素材分页列表
      */
     @GetMapping
@@ -36,10 +37,11 @@ public class AdMaterialController {
             @RequestParam(required = false) Long advertiserId,
             @RequestParam(required = false) String type,
             @RequestParam(required = false) String category,
-            @RequestParam(required = false) Integer status) {
+            @RequestParam(required = false) Integer status,
+            @RequestParam(required = false) String keyword) {
         
         Pageable pageable = PageRequest.of(page, size);
-        Page<AdMaterial> materials = adMaterialService.getAllAdMaterials(advertiserId, type, category, status, pageable);
+        Page<AdMaterial> materials = adMaterialService.getAllAdMaterials(advertiserId, type, category, status, keyword, pageable);
         return ResponseEntity.ok(materials);
     }
 

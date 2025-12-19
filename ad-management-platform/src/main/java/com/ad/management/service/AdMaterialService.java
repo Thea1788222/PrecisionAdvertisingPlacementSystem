@@ -13,10 +13,11 @@ public interface AdMaterialService {
      * @param type         素材类型
      * @param category     素材分类
      * @param status       素材状态
+     * @param keyword      搜索关键词
      * @param pageable     分页参数
      * @return 广告素材列表
      */
-    Page<AdMaterial> getAllAdMaterials(Long advertiserId, String type, String category, Integer status, Pageable pageable);
+    Page<AdMaterial> getAllAdMaterials(Long advertiserId, String type, String category, Integer status, String keyword, Pageable pageable);
 
     /**
      * 创建广告素材

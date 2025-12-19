@@ -53,7 +53,7 @@ public class AdMaterial {
     
     // 状态(1:启用, 0:禁用)
     @Column(columnDefinition = "TINYINT DEFAULT 1")
-    private Byte status = 1;
+    private Integer status = 1;
     
     @Column(name = "created_at")
     private LocalDateTime createdAt;
