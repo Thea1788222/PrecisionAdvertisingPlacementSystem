@@ -35,19 +35,19 @@
       <!-- 数据表格 -->
       <div class="table-section">
         <h2>最新广告统计数据</h2>
-        <el-table :data="latestStats" style="width: 100%" v-loading="loading">
-          <el-table-column prop="adTitle" label="广告名称" width="150"></el-table-column>
-          <el-table-column prop="date" label="日期" width="120"></el-table-column>
-          <el-table-column prop="impressionsCount" label="展示次数" width="120"></el-table-column>
-          <el-table-column prop="clicksCount" label="点击次数" width="120"></el-table-column>
-          <el-table-column prop="conversionsCount" label="转化次数" width="120"></el-table-column>
-          <el-table-column prop="ctr" label="点击率" width="120">
+        <el-table :data="latestStats" style="width: 100%" v-loading="loading" :header-cell-style="{ textAlign: 'center' }">
+          <el-table-column prop="adTitle" label="广告名称" width="150" align="center"></el-table-column>
+          <el-table-column prop="date" label="日期" width="120" align="center"></el-table-column>
+          <el-table-column prop="impressionsCount" label="展示次数" width="120" align="center"></el-table-column>
+          <el-table-column prop="clicksCount" label="点击次数" width="120" align="center"></el-table-column>
+          <el-table-column prop="conversionsCount" label="转化次数" width="120" align="center"></el-table-column>
+          <el-table-column prop="ctr" label="点击率" width="120" align="center">
             <template #default="scope">
               {{ scope.row.ctr !== undefined && scope.row.ctr !== null ? (scope.row.ctr * 100).toFixed(2) + '%' : '0.00%' }}
             </template>
           </el-table-column>
-          <el-table-column prop="cost" label="成本" width="120"></el-table-column>
-          <el-table-column prop="revenue" label="收入" width="120"></el-table-column>
+          <el-table-column prop="cost" label="成本" width="120" align="center"></el-table-column>
+          <el-table-column prop="revenue" label="收入" width="120" align="center"></el-table-column>
         </el-table>
       </div>
     </div>
@@ -190,11 +190,11 @@ onMounted(() => {
   padding: 1.5rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   text-align: center;
+  transition: all 0.3s ease;
 }
 
 .stat-card.clickable {
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .stat-card.clickable:hover {
@@ -205,6 +205,7 @@ onMounted(() => {
 .stat-card h3 {
   margin: 0 0 1rem 0;
   color: #7f8c8d;
+  font-size: 1.1rem;
 }
 
 .stat-number {
@@ -227,6 +228,9 @@ onMounted(() => {
 
 .chart-container h2 {
   margin-top: 0;
+  color: #2c3e50;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 0.5rem;
 }
 
 .chart-wrapper {
@@ -244,5 +248,8 @@ onMounted(() => {
 
 .table-section h2 {
   margin-top: 0;
+  color: #2c3e50;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 0.5rem;
 }
 </style>
