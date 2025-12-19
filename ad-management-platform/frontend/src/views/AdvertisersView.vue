@@ -36,6 +36,7 @@
             <th>联系人</th>
             <th>邮箱</th>
             <th>状态</th>
+            <th>创建时间</th>
             <th>操作</th>
           </tr>
         </thead>
@@ -50,6 +51,7 @@
                 {{ advertiser.status === 1 ? '启用' : '禁用' }}
               </span>
             </td>
+            <td>{{ formatDate(advertiser.createdAt) }}</td>
             <td>
               <button class="btn btn-sm btn-outline" @click="editAdvertiser(advertiser)">
                 编辑
@@ -60,7 +62,7 @@
             </td>
           </tr>
           <tr v-if="advertisers.length === 0">
-            <td colspan="6" class="empty-state">
+            <td colspan="7" class="empty-state">
               暂无数据
             </td>
           </tr>
@@ -128,8 +130,8 @@
             <div class="form-group">
               <label>状态</label>
               <select v-model="currentAdvertiser.status">
-                <option value="1">启用</option>
-                <option value="0">禁用</option>
+                <option :value="1">启用</option>
+                <option :value="0">禁用</option>
               </select>
             </div>
             <div class="form-actions">
@@ -149,10 +151,13 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import apiService from '@/services/apiService'
 
 const advertisers = ref([])
 const currentPage = ref(1)
 const totalPages = ref(1)
+const totalElements = ref(0)
+const pageSize = ref(10)
 const showCreateModal = ref(false)
 const showEditModal = ref(false)
 
@@ -168,77 +173,97 @@ const currentAdvertiser = ref({
   status: 1
 })
 
-// 模拟数据
+// 挂载时加载数据
 onMounted(() => {
   loadAdvertisers()
 })
 
-const loadAdvertisers = () => {
-  // 模拟 API 调用
-  advertisers.value = [
-    {
-      id: 1,
-      name: '科技数码有限公司',
-      contact: '张经理',
-      email: 'zhang@tech.com',
-      status: 1
-    },
-    {
-      id: 2,
-      name: '时尚服装集团',
-      contact: '李总监',
-      email: 'li@fashion.com',
-      status: 1
-    }
-  ]
-  totalPages.value = 1
+// 加载广告商列表
+const loadAdvertisers = async () => {
+  try {
+    const response = await apiService.get(`/advertisers?page=${currentPage.value - 1}&size=${pageSize.value}&name=${filters.value.name || ''}`)
+    advertisers.value = response.data.content
+    totalPages.value = response.data.totalPages
+    totalElements.value = response.data.totalElements
+  } catch (error) {
+    console.error('加载广告商失败:', error)
+    alert('加载广告商失败')
+  }
 }
 
+// 处理搜索
 const handleSearch = () => {
   currentPage.value = 1
   loadAdvertisers()
 }
 
+// 切换页面
 const changePage = (page) => {
   currentPage.value = page
   loadAdvertisers()
 }
 
+// 编辑广告商
 const editAdvertiser = (advertiser) => {
   currentAdvertiser.value = { ...advertiser }
   showEditModal.value = true
 }
 
-const deleteAdvertiser = (id) => {
+// 删除广告商
+const deleteAdvertiser = async (id) => {
   if (confirm('确定要删除这个广告商吗？')) {
-    // 模拟删除操作
-    advertisers.value = advertisers.value.filter(a => a.id !== id)
+    try {
+      await apiService.delete(`/advertisers/${id}`)
+      loadAdvertisers()
+    } catch (error) {
+      console.error('删除广告商失败:', error)
+      alert('删除广告商失败')
+    }
   }
 }
 
+// 关闭模态框
 const closeModal = () => {
   showCreateModal.value = false
   showEditModal.value = false
+  resetCurrentAdvertiser()
 }
 
-const saveAdvertiser = () => {
-  // 模拟保存操作
-  if (showCreateModal.value) {
-    // 创建新广告商
-    const newAdvertiser = {
-      id: advertisers.value.length + 1,
-      ...currentAdvertiser.value
-    }
-    advertisers.value.push(newAdvertiser)
-  } else {
-    // 更新广告商
-    const index = advertisers.value.findIndex(a => a.id === currentAdvertiser.value.id)
-    if (index !== -1) {
-      advertisers.value[index] = { ...currentAdvertiser.value }
-    }
+// 重置当前广告商表单
+const resetCurrentAdvertiser = () => {
+  currentAdvertiser.value = {
+    id: null,
+    name: '',
+    contact: '',
+    email: '',
+    status: 1
   }
-  
-  closeModal()
+}
+
+// 保存广告商
+const saveAdvertiser = async () => {
+  try {
+    if (showCreateModal.value) {
+      // 创建新广告商
+      await apiService.post('/advertisers', currentAdvertiser.value)
+    } else {
+      // 更新广告商
+      await apiService.put(`/advertisers/${currentAdvertiser.value.id}`, currentAdvertiser.value)
+    }
+
+    closeModal()
+    loadAdvertisers()
+  } catch (error) {
+    console.error('保存广告商失败:', error)
+    alert('保存广告商失败')
+  }
+}
+
+// 格式化日期
+const formatDate = (dateString) => {
+  if (!dateString) return ''
+  const date = new Date(dateString)
+  return date.toLocaleDateString('zh-CN')
 }
 </script>
 
