@@ -3,10 +3,12 @@ package com.ad.management.controller;
 import com.ad.management.model.AdPosition;
 import com.ad.management.service.AdPositionService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -20,12 +22,31 @@ public class AdPositionController {
      * 获取所有广告位配置
      *
      * @param website 网站域名（可选）
+     * @param positionKey 位置标识（可选）
+     * @param positionName 位置名称（可选）
+     * @param page 页码（从0开始，默认为0）
+     * @param size 每页大小（默认为10）
      * @return 广告位配置列表
      */
     @GetMapping
-    public ResponseEntity<List<AdPosition>> getAllAdPositions(
-            @RequestParam(required = false) String website) {
-        List<AdPosition> positions = adPositionService.getAllAdPositions(website);
+    public ResponseEntity<Page<AdPosition>> getAllAdPositions(
+            @RequestParam(required = false) String website,
+            @RequestParam(required = false) String positionKey,
+            @RequestParam(required = false) String positionName,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        
+        Pageable pageable = PageRequest.of(page, size);
+        Page<AdPosition> positions;
+        
+        // 如果有任何搜索条件，则使用条件搜索方法
+        if (website != null || positionKey != null || positionName != null) {
+            positions = adPositionService.getAdPositionsByConditions(website, positionKey, positionName, pageable);
+        } else {
+            // 否则获取所有广告位
+            positions = adPositionService.getAllAdPositions(pageable);
+        }
+        
         return ResponseEntity.ok(positions);
     }
 
@@ -42,10 +63,11 @@ public class AdPositionController {
     }
 
     /**
-     * 根据ID获取广告位配置
+     * 根据ID更新广告位配置
      *
      * @param id 广告位配置ID
-     * @return 匹配的广告位配置
+     * @param adPositionDetails 广告位配置详情
+     * @return 更新后的广告位配置
      */
     @PutMapping("/{id}")
     public ResponseEntity<AdPosition> updateAdPosition(

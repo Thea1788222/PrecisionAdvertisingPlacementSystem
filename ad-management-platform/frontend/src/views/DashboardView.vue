@@ -87,9 +87,8 @@ const fetchStats = async () => {
 
     // 更新统计数据
     stats.value.materialCount = materialsRes.data.content ? materialsRes.data.content.length : materialsRes.data.length
-    stats.value.positionCount = positionsRes.data.length
+    stats.value.positionCount = positionsRes.data.content ? positionsRes.data.content.length : positionsRes.data.length
     stats.value.advertiserCount = advertisersRes.data.content ? advertisersRes.data.content.length : advertisersRes.data.length
-
     // 处理最新的统计数据
     const sortedStats = [...statsRes.data].sort((a, b) => new Date(b.date) - new Date(a.date))
     latestStats.value = sortedStats.slice(0, 10)

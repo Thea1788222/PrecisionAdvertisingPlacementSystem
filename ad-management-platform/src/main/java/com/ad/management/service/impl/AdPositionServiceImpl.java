@@ -3,6 +3,8 @@ package com.ad.management.service.impl;
 import com.ad.management.model.AdPosition;
 import com.ad.management.repository.AdPositionRepository;
 import com.ad.management.service.AdPositionService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
@@ -17,6 +19,17 @@ public class AdPositionServiceImpl implements AdPositionService {
     }
 
     /**
+     * 获取所有广告位置（分页）
+     *
+     * @param pageable 分页参数
+     * @return 所有广告位置的分页列表
+     */
+    @Override
+    public Page<AdPosition> getAllAdPositions(Pageable pageable) {
+        return adPositionRepository.findAll(pageable);
+    }
+
+    /**
      * 获取所有广告位置
      *
      * @param website 网站名称
@@ -25,6 +38,20 @@ public class AdPositionServiceImpl implements AdPositionService {
     @Override
     public List<AdPosition> getAllAdPositions(String website) {
         return adPositionRepository.findByWebsite(website);
+    }
+    
+    /**
+     * 根据条件获取广告位置列表（分页）
+     *
+     * @param website 网站名称
+     * @param positionKey 位置标识
+     * @param positionName 位置名称
+     * @param pageable 分页参数
+     * @return 符合条件的广告位置分页列表
+     */
+    @Override
+    public Page<AdPosition> getAdPositionsByConditions(String website, String positionKey, String positionName, Pageable pageable) {
+        return adPositionRepository.findByConditions(website, positionKey, positionName, pageable);
     }
     
     /**

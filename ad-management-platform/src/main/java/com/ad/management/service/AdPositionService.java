@@ -1,10 +1,20 @@
 package com.ad.management.service;
 
 import com.ad.management.model.AdPosition;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import java.util.List;
 import java.util.Optional;
 
 public interface AdPositionService {
+
+    /**
+     * 获取所有广告位置（分页）
+     *
+     * @param pageable 分页参数
+     * @return 所有广告位置的分页列表
+     */
+    Page<AdPosition> getAllAdPositions(Pageable pageable);
 
     /**
      * 获取所有广告位置
@@ -13,6 +23,17 @@ public interface AdPositionService {
      * @return 所有广告位置的列表
      */
     List<AdPosition> getAllAdPositions(String website);
+
+    /**
+     * 根据条件获取广告位置列表（分页）
+     *
+     * @param website 网站名称
+     * @param positionKey 位置标识
+     * @param positionName 位置名称
+     * @param pageable 分页参数
+     * @return 符合条件的广告位置分页列表
+     */
+    Page<AdPosition> getAdPositionsByConditions(String website, String positionKey, String positionName, Pageable pageable);
 
     /**
      * 创建广告位置
