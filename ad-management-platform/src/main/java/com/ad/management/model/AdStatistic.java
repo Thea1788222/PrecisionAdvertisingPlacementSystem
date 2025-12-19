@@ -22,6 +22,10 @@ public class AdStatistic {
     @Column(name = "ad_id")
     private Long adId;
     
+    // 添加广告标题字段，用于前端显示
+    @Transient
+    private String adTitle;
+    
     @Column(name = "impressions_count")
     private Integer impressionsCount = 0;
     

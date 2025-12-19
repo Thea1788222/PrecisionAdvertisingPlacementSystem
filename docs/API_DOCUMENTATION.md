@@ -25,9 +25,9 @@
 - Vite 4.x
 
 ### 2.3 服务端口分配
-| 服务名称 | 端口 |
+| 服务名称 | 端口   |
 |---------|------|
-| ad-management-platform | 8080 |
+| ad-management-platform | 8085 |
 | shopping-website | 8081 |
 | video-website | 8082 |
 | news-website | 8083 |

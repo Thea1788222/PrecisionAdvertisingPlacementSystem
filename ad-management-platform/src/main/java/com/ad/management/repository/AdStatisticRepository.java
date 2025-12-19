@@ -22,7 +22,8 @@ public interface AdStatisticRepository extends JpaRepository<AdStatistic, Long> 
     @Query("SELECT s FROM AdStatistic s WHERE " +
            "(:adId IS NULL OR s.adId = :adId) AND " +
            "(:startDate IS NULL OR s.date >= :startDate) AND " +
-           "(:endDate IS NULL OR s.date <= :endDate)")
+           "(:endDate IS NULL OR s.date <= :endDate) " +
+           "ORDER BY s.date DESC")
     List<AdStatistic> findByAdIdAndDateRange(
         @Param("adId") Long adId,
         @Param("startDate") LocalDate startDate,
