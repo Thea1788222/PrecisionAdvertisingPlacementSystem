@@ -736,6 +736,84 @@
 ]
 ```
 
+#### 获取统计摘要数据
+- **URL**: `/api/statistics/summary`
+- **方法**: GET
+- **描述**: 获取聚合统计数据（总展示次数、总点击次数、总收入等）
+- **查询参数**:
+  - startDate: 开始日期
+  - endDate: 结束日期
+  - website: 网站标识
+- **响应**:
+```json
+{
+  "totalImpressions": 125480,
+  "totalClicks": 8752,
+  "totalRevenue": 15680.00,
+  "averageCtr": 6.98,
+  "impressionsChange": 12.5,
+  "clicksChange": 8.3,
+  "revenueChange": 15.7,
+  "ctrChange": -1.2
+}
+```
+
+#### 获取趋势统计数据
+- **URL**: `/api/statistics/trends`
+- **方法**: GET
+- **描述**: 获取按日期聚合的趋势数据
+- **查询参数**:
+  - startDate: 开始日期
+  - endDate: 结束日期
+  - website: 网站标识
+- **响应**:
+```json
+[
+  {
+    "date": "2023-06-01",
+    "impressions": 47370,
+    "clicks": 3800,
+    "revenue": 6550.00
+  },
+  {
+    "date": "2023-06-02",
+    "impressions": 51900,
+    "clicks": 4200,
+    "revenue": 7250.00
+  }
+]
+```
+
+#### 获取分布统计数据
+- **URL**: `/api/statistics/distribution`
+- **方法**: GET
+- **描述**: 获取按网站或其他维度聚合的分布数据
+- **查询参数**:
+  - startDate: 开始日期
+  - endDate: 结束日期
+  - dimension: 维度 (website|ad)
+  - metric: 指标 (impressions|clicks|revenue)
+- **响应**:
+```json
+[
+  {
+    "dimension": "shopping",
+    "metricValue": 31500,
+    "percentage": 35.2
+  },
+  {
+    "dimension": "video",
+    "metricValue": 47750,
+    "percentage": 53.3
+  },
+  {
+    "dimension": "news",
+    "metricValue": 10300,
+    "percentage": 11.5
+  }
+]
+```
+
 ## 6. 购物网站接口 (shopping-website)
 
 ### 6.1 商品管理

@@ -42,23 +42,31 @@
     <div class="stats-grid">
       <div class="stat-card">
         <h3>总展示次数</h3>
-        <p class="stat-number">125,480</p>
-        <p class="stat-change positive">↑ 12.5%</p>
+        <p class="stat-number">{{ formatNumber(summary.totalImpressions) }}</p>
+        <p class="stat-change" :class="summary.impressionsChange >= 0 ? 'positive' : 'negative'">
+          {{ summary.impressionsChange >= 0 ? '↑' : '↓' }} {{ Math.abs(summary.impressionsChange) }}%
+        </p>
       </div>
       <div class="stat-card">
         <h3>总点击次数</h3>
-        <p class="stat-number">8,752</p>
-        <p class="stat-change positive">↑ 8.3%</p>
+        <p class="stat-number">{{ formatNumber(summary.totalClicks) }}</p>
+        <p class="stat-change" :class="summary.clicksChange >= 0 ? 'positive' : 'negative'">
+          {{ summary.clicksChange >= 0 ? '↑' : '↓' }} {{ Math.abs(summary.clicksChange) }}%
+        </p>
       </div>
       <div class="stat-card">
         <h3>点击率</h3>
-        <p class="stat-number">6.98%</p>
-        <p class="stat-change negative">↓ 1.2%</p>
+        <p class="stat-number">{{ summary.averageCtr.toFixed(2) }}%</p>
+        <p class="stat-change" :class="summary.ctrChange >= 0 ? 'positive' : 'negative'">
+          {{ summary.ctrChange >= 0 ? '↑' : '↓' }} {{ Math.abs(summary.ctrChange) }}%
+        </p>
       </div>
       <div class="stat-card">
         <h3>总收入</h3>
-        <p class="stat-number">¥15,680</p>
-        <p class="stat-change positive">↑ 15.7%</p>
+        <p class="stat-number">¥{{ formatNumber(summary.totalRevenue) }}</p>
+        <p class="stat-change" :class="summary.revenueChange >= 0 ? 'positive' : 'negative'">
+          {{ summary.revenueChange >= 0 ? '↑' : '↓' }} {{ Math.abs(summary.revenueChange) }}%
+        </p>
       </div>
     </div>
 
@@ -66,30 +74,12 @@
     <div class="charts-section">
       <div class="chart-card">
         <h3>展示与点击趋势</h3>
-        <div class="chart-placeholder">
-          <p>展示与点击趋势图表</p>
-          <div class="chart-demo">
-            <div class="chart-bar" style="height: 80%"></div>
-            <div class="chart-bar" style="height: 60%"></div>
-            <div class="chart-bar" style="height: 90%"></div>
-            <div class="chart-bar" style="height: 70%"></div>
-            <div class="chart-bar" style="height: 85%"></div>
-            <div class="chart-bar" style="height: 75%"></div>
-            <div class="chart-bar" style="height: 95%"></div>
-          </div>
-        </div>
+        <div ref="chartContainer" class="chart-container"></div>
       </div>
 
       <div class="chart-card">
         <h3>收入分布</h3>
-        <div class="chart-placeholder">
-          <p>收入分布饼图</p>
-          <div class="pie-chart-demo">
-            <div class="pie-slice slice-1"></div>
-            <div class="pie-slice slice-2"></div>
-            <div class="pie-slice slice-3"></div>
-          </div>
-        </div>
+        <div ref="pieChartContainer" class="chart-container"></div>
       </div>
     </div>
 
@@ -100,7 +90,7 @@
         <thead>
           <tr>
             <th>日期</th>
-            <th>网站</th>
+            <th>广告标题</th>
             <th>展示次数</th>
             <th>点击次数</th>
             <th>点击率</th>
@@ -108,13 +98,13 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="item in statItems" :key="item.date">
-            <td>{{ item.date }}</td>
-            <td>{{ item.website }}</td>
-            <td>{{ item.impressions }}</td>
-            <td>{{ item.clicks }}</td>
-            <td>{{ item.ctr }}%</td>
-            <td>{{ item.revenue }}</td>
+          <tr v-for="item in statItems" :key="item.id">
+            <td>{{ formatDate(item.date) }}</td>
+            <td>{{ item.adTitle }}</td>
+            <td>{{ formatNumber(item.impressionsCount) }}</td>
+            <td>{{ formatNumber(item.clicksCount) }}</td>
+            <td>{{ (item.ctr * 100).toFixed(2) }}%</td>
+            <td>{{ item.revenue.toFixed(2) }}</td>
           </tr>
           <tr v-if="statItems.length === 0">
             <td colspan="6" class="empty-state">
@@ -128,7 +118,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch, nextTick } from 'vue'
+import * as echarts from 'echarts'
+import apiService from '@/services/apiService'
 
 const filters = ref({
   startDate: '',
@@ -137,44 +129,292 @@ const filters = ref({
 })
 
 const statItems = ref([])
+const summary = ref({
+  totalImpressions: 0,
+  totalClicks: 0,
+  totalRevenue: 0,
+  averageCtr: 0,
+  impressionsChange: 0,
+  clicksChange: 0,
+  revenueChange: 0,
+  ctrChange: 0
+})
 
-// 模拟数据
+const chartContainer = ref(null)
+const pieChartContainer = ref(null)
+let chartInstance = null
+let pieChartInstance = null
+
+// 挂载时加载数据
 onMounted(() => {
   loadStats()
 })
 
-const loadStats = () => {
-  // 模拟 API 调用
+// 监控数据变化，重新绘制图表
+watch(statItems, () => {
+  nextTick(() => {
+    renderChart()
+    renderPieChart()
+  })
+})
+
+const loadStats = async () => {
+  try {
+    // 并行请求多个接口
+    const [summaryResponse, trendsResponse, distributionResponse, detailResponse] = await Promise.all([
+      apiService.get('/statistics/summary', {
+        params: {
+          startDate: filters.value.startDate,
+          endDate: filters.value.endDate,
+          website: filters.value.website
+        }
+      }),
+      apiService.get('/statistics/trends', {
+        params: {
+          startDate: filters.value.startDate,
+          endDate: filters.value.endDate,
+          website: filters.value.website
+        }
+      }),
+      apiService.get('/statistics/distribution', {
+        params: {
+          startDate: filters.value.startDate,
+          endDate: filters.value.endDate,
+          dimension: 'website',
+          metric: 'revenue'
+        }
+      }),
+      apiService.get('/statistics/ads', {
+        params: {
+          startDate: filters.value.startDate,
+          endDate: filters.value.endDate
+        }
+      })
+    ])
+
+    // 更新摘要数据
+    summary.value = summaryResponse.data
+
+    // 更新详细数据
+    statItems.value = detailResponse.data
+
+    // 存储趋势和分布数据供图表使用
+    window.trendsData = trendsResponse.data
+    window.distributionData = distributionResponse.data
+
+    // 渲染图表
+    nextTick(() => {
+      renderChart()
+      renderPieChart()
+    })
+  } catch (error) {
+    console.error('加载统计数据失败:', error)
+    // 使用模拟数据以便开发
+    loadMockData()
+  }
+}
+
+const loadMockData = () => {
+  summary.value = {
+    totalImpressions: 125480,
+    totalClicks: 8752,
+    totalRevenue: 15680.00,
+    averageCtr: 6.98,
+    impressionsChange: 12.5,
+    clicksChange: 8.3,
+    revenueChange: 15.7,
+    ctrChange: -1.2
+  }
+
   statItems.value = [
     {
+      id: 1,
       date: '2023-06-01',
-      website: '购物网站',
-      impressions: 15420,
-      clicks: 1250,
-      ctr: 8.1,
-      revenue: 2450
+      adTitle: '科技产品推广',
+      impressionsCount: 15420,
+      clicksCount: 1250,
+      ctr: 0.081,
+      revenue: 2450.00
     },
     {
+      id: 2,
       date: '2023-06-01',
-      website: '视频网站',
-      impressions: 22150,
-      clicks: 1870,
-      ctr: 8.4,
-      revenue: 3120
+      adTitle: '时尚品牌宣传',
+      impressionsCount: 22150,
+      clicksCount: 1870,
+      ctr: 0.084,
+      revenue: 3120.00
     },
     {
+      id: 3,
       date: '2023-06-01',
-      website: '新闻网站',
-      impressions: 9800,
-      clicks: 680,
-      ctr: 6.9,
-      revenue: 980
+      adTitle: '家居用品广告',
+      impressionsCount: 9800,
+      clicksCount: 680,
+      ctr: 0.069,
+      revenue: 980.00
     }
   ]
+
+  window.trendsData = [
+    {
+      date: '2023-06-01',
+      impressions: 47370,
+      clicks: 3800,
+      revenue: 6550.00
+    },
+    {
+      date: '2023-06-02',
+      impressions: 51900,
+      clicks: 4200,
+      revenue: 7250.00
+    }
+  ]
+
+  window.distributionData = [
+    {
+      dimension: '购物网站',
+      metricValue: 31500,
+      percentage: 35.2
+    },
+    {
+      dimension: '视频网站',
+      metricValue: 47750,
+      percentage: 53.3
+    },
+    {
+      dimension: '新闻网站',
+      metricValue: 10300,
+      percentage: 11.5
+    }
+  ]
+
+  nextTick(() => {
+    renderChart()
+    renderPieChart()
+  })
 }
 
 const handleSearch = () => {
   loadStats()
+}
+
+const formatDate = (dateStr) => {
+  if (!dateStr) return ''
+  return dateStr
+}
+
+const formatNumber = (num) => {
+  if (num === null || num === undefined) return '0'
+  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+}
+
+// 渲染趋势图表
+const renderChart = () => {
+  if (!chartContainer.value) return
+
+  // 销毁之前的实例
+  if (chartInstance) {
+    chartInstance.dispose()
+  }
+
+  // 初始化图表
+  chartInstance = echarts.init(chartContainer.value)
+
+  // 准备数据
+  const dates = (window.trendsData || []).map(item => item.date)
+  const impressions = (window.trendsData || []).map(item => item.impressions)
+  const clicks = (window.trendsData || []).map(item => item.clicks)
+
+  // 图表配置
+  const option = {
+    tooltip: {
+      trigger: 'axis'
+    },
+    legend: {
+      data: ['展示次数', '点击次数']
+    },
+    xAxis: {
+      type: 'category',
+      data: dates
+    },
+    yAxis: {
+      type: 'value'
+    },
+    series: [
+      {
+        name: '展示次数',
+        type: 'line',
+        data: impressions
+      },
+      {
+        name: '点击次数',
+        type: 'line',
+        data: clicks
+      }
+    ]
+  }
+
+  // 渲染图表
+  chartInstance.setOption(option)
+
+  // 监听窗口大小变化
+  window.addEventListener('resize', () => {
+    chartInstance.resize()
+  })
+}
+
+// 渲染饼图
+const renderPieChart = () => {
+  if (!pieChartContainer.value) return
+
+  // 销毁之前的实例
+  if (pieChartInstance) {
+    pieChartInstance.dispose()
+  }
+
+  // 初始化图表
+  pieChartInstance = echarts.init(pieChartContainer.value)
+
+  // 准备数据
+  const data = (window.distributionData || []).map(item => ({
+    name: item.dimension,
+    value: item.metricValue
+  }))
+
+  // 图表配置
+  const option = {
+    tooltip: {
+      trigger: 'item'
+    },
+    legend: {
+      orient: 'vertical',
+      left: 'left'
+    },
+    series: [
+      {
+        name: '收入分布',
+        type: 'pie',
+        radius: '50%',
+        data: data,
+        emphasis: {
+          itemStyle: {
+            shadowBlur: 10,
+            shadowOffsetX: 0,
+            shadowColor: 'rgba(0, 0, 0, 0.5)'
+          }
+        }
+      }
+    ]
+  }
+
+  // 渲染图表
+  pieChartInstance.setOption(option)
+
+  // 监听窗口大小变化
+  window.addEventListener('resize', () => {
+    pieChartInstance.resize()
+  })
 }
 </script>
 
@@ -345,55 +585,9 @@ const handleSearch = () => {
   margin-top: 0;
 }
 
-.chart-placeholder {
+.chart-container {
   height: 300px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background-color: #f8f9fa;
-  border-radius: 4px;
-}
-
-.chart-demo {
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  height: 150px;
-  gap: 10px;
-  margin-top: 20px;
-}
-
-.chart-bar {
-  width: 30px;
-  background-color: #3498db;
-  border-radius: 4px 4px 0 0;
-}
-
-.pie-chart-demo {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 20px;
-  margin-top: 20px;
-}
-
-.pie-slice {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-}
-
-.slice-1 {
-  background: conic-gradient(#3498db 0deg 120deg, transparent 120deg 360deg);
-}
-
-.slice-2 {
-  background: conic-gradient(#2ecc71 0deg 90deg, transparent 90deg 360deg);
-}
-
-.slice-3 {
-  background: conic-gradient(#e74c3c 0deg 150deg, transparent 150deg 360deg);
+  width: 100%;
 }
 
 .table-container {
