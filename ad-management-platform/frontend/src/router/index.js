@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import LoginView from '../views/LoginView.vue'
 import RegisterView from '../views/RegisterView.vue'
 import Layout from '../layouts/Layout.vue'
+import apiService from '../services/apiService'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -56,6 +57,8 @@ const router = createRouter({
 
 // 添加路由守卫
 router.beforeEach((to, from, next) => {
+  // 检查并清除过期token
+  const tokenCleared = apiService.clearExpiredToken()
   const token = localStorage.getItem('token')
   
   // 如果访问的是登录或注册页面，且已经登录，则重定向到仪表板

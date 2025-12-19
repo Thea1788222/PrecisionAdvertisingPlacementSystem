@@ -7,7 +7,16 @@ export const useAuthStore = defineStore('auth', () => {
   const token = ref(localStorage.getItem('token') || null)
 
   const isAuthenticated = () => {
-    return !!token.value
+    // 检查token是否存在以及是否过期
+    if (!token.value) return false
+    
+    // 如果token过期，清理本地存储
+    if (apiService.isTokenExpired(token.value)) {
+      logout()
+      return false
+    }
+    
+    return true
   }
 
   const login = async (credentials) => {

@@ -9,10 +9,35 @@ const apiClient = axios.create({
   }
 })
 
+// 检查token是否过期
+const isTokenExpired = (token) => {
+  if (!token) return true
+  
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]))
+    const currentTime = Math.floor(Date.now() / 1000)
+    return payload.exp < currentTime
+  } catch (e) {
+    return true
+  }
+}
+
+// 清除过期token
+const clearExpiredToken = () => {
+  const token = localStorage.getItem('token')
+  if (token && isTokenExpired(token)) {
+    localStorage.removeItem('token')
+    delete apiClient.defaults.headers.common['Authorization']
+    return true
+  }
+  return false
+}
+
 // 请求拦截器
 apiClient.interceptors.request.use(
   (config) => {
-    // 在发送请求之前做些什么
+    // 在发送请求之前检查token是否过期
+    clearExpiredToken()
     return config
   },
   (error) => {
@@ -30,8 +55,10 @@ apiClient.interceptors.response.use(
   (error) => {
     // 对响应错误做点什么
     if (error.response?.status === 401) {
-      // 未授权，可能需要重新登录
-      // 这里可以触发登出操作
+      // 未授权，清除本地token并跳转到登录页
+      localStorage.removeItem('token')
+      delete apiClient.defaults.headers.common['Authorization']
+      window.location.href = '/#/login'
     }
     return Promise.reject(error)
   }
@@ -46,10 +73,13 @@ const setAuthToken = (token) => {
   }
 }
 
-// 初始化时设置 token（如果存在）
+// 初始化时设置 token（如果存在且未过期）
 const storedToken = localStorage.getItem('token')
-if (storedToken) {
+if (storedToken && !isTokenExpired(storedToken)) {
   setAuthToken(storedToken)
+} else {
+  // 如果token过期则清除
+  localStorage.removeItem('token')
 }
 
 export default {
@@ -64,5 +94,9 @@ export default {
   register: (userData) => apiClient.post('/auth/register', userData),
 
   // 设置认证 token
-  setAuthToken
+  setAuthToken,
+  
+  // token过期检查方法
+  isTokenExpired,
+  clearExpiredToken
 }
