@@ -4,13 +4,15 @@ server:
     context-path: /
 
 spring:
+  profiles:
+    active: dev
   application:
     name: ad-management-platform
 
   datasource:
-    url: jdbc:mysql://10.100.164.35:3306/advertising_system?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
-    username: remote
-    password: StrongPassword123!
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:advertising_system}?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:password}
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
       minimum-idle: 5
@@ -36,6 +38,11 @@ spring:
     time-zone: Asia/Shanghai
     default-property-inclusion: non_null
 
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
 # Logging configuration
 logging:
   level:
@@ -54,3 +61,11 @@ springdoc:
     path: /swagger-ui.html
   api-docs:
     path: /v3/api-docs
+
+# 阿里云 OSS 配置
+aliyun:
+  oss:
+    endpoint: ${ALIYUN_OSS_ENDPOINT:oss-cn-beijing.aliyuncs.com}
+    access-key-id: ${ALIYUN_OSS_ACCESS_KEY_ID:}
+    access-key-secret: ${ALIYUN_OSS_ACCESS_KEY_SECRET:}
+    bucket-name: ${ALIYUN_OSS_BUCKET_NAME:your-bucket-name}

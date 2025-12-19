@@ -453,7 +453,7 @@
 }
 ```
 
-### 5.2 广告素材管理
+### 5.3 广告素材管理
 #### 获取广告素材列表
 - **URL**: `/api/materials`
 - **方法**: GET
@@ -593,7 +593,22 @@
 }
 ```
 
-### 5.3 广告位配置
+#### 上传广告素材文件
+- **URL**: `/api/materials/upload`
+- **方法**: POST
+- **描述**: 上传广告素材文件到阿里云 OSS
+- **请求参数**:
+  - file: 文件数据 (multipart/form-data)
+- **响应**:
+```json
+{
+  "success": true,
+  "url": "https://bucket-name.oss-cn-region.aliyuncs.com/file-key.jpg",
+  "message": "上传成功"
+}
+```
+
+### 5.4 广告位配置
 #### 获取广告位列表
 - **URL**: `/api/positions`
 - **方法**: GET
@@ -688,7 +703,7 @@
 }
 ```
 
-### 5.4 数据统计
+### 5.5 数据统计
 #### 获取广告统计数据
 - **URL**: `/api/statistics/ads`
 - **方法**: GET

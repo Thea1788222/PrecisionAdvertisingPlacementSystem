@@ -1,13 +1,18 @@
 package com.ad.management.controller;
 
 import com.ad.management.model.AdMaterial;
+import com.ad.management.model.FileUploadResponse;
 import com.ad.management.service.AdMaterialService;
+import com.ad.management.service.OssService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -17,6 +22,9 @@ public class AdMaterialController {
 
     @Autowired
     private AdMaterialService adMaterialService;
+    
+    @Autowired
+    private OssService ossService;
 
     /**
      * 获取所有广告素材
@@ -84,5 +92,28 @@ public class AdMaterialController {
         response.put("success", true);
         response.put("message", "广告素材删除成功");
         return ResponseEntity.ok(response);
+    }
+    
+    /**
+     * 上传广告素材文件到阿里云 OSS
+     *
+     * @param file 文件
+     * @return 文件上传结果
+     */
+    @PostMapping("/upload")
+    public ResponseEntity<FileUploadResponse> uploadMaterialFile(
+            @RequestParam("file") MultipartFile file) {
+        try {
+            // 上传文件到阿里云 OSS
+            String fileUrl = ossService.uploadFile(file, "ad-materials");
+            
+            // 返回成功响应
+            FileUploadResponse response = new FileUploadResponse(true, fileUrl, "文件上传成功");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            // 返回失败响应
+            FileUploadResponse response = new FileUploadResponse(false, null, "文件上传失败: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
     }
 }

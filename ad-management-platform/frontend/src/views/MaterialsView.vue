@@ -455,31 +455,48 @@ const resetForm = () => {
 // 保存广告素材
 const saveMaterial = async () => {
   try {
-    // 模拟文件上传（实际应该上传到后端，然后由后端上传到阿里云OSS）
+    // 实际上传文件到后端
     if (hasFile.value && currentFile.value) {
-      // 模拟上传过程
       isUploading.value = true
       uploadProgress.value = 0
       
-      // 模拟上传进度
-      const interval = setInterval(() => {
-        uploadProgress.value += 10
-        if (uploadProgress.value >= 100) {
-          clearInterval(interval)
-          isUploading.value = false
+      // 创建FormData对象用于文件上传
+      const formData = new FormData()
+      formData.append('file', currentFile.value)
+      
+      try {
+        // 调用后端上传接口
+        const uploadResponse = await apiService.post('/materials/upload', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          },
+          onUploadProgress: (progressEvent) => {
+            if (progressEvent.total) {
+              uploadProgress.value = Math.round((progressEvent.loaded * 100) / progressEvent.total)
+            }
+          }
+        })
+        
+        isUploading.value = false
+        
+        // 检查上传是否成功
+        if (uploadResponse.data.success) {
+          // 设置文件URL
+          if (currentFileType.value === 'image') {
+            currentMaterial.value.imageUrl = uploadResponse.data.url
+            currentMaterial.value.type = 'banner'
+          } else if (currentFileType.value === 'video') {
+            currentMaterial.value.videoUrl = uploadResponse.data.url
+            currentMaterial.value.type = 'video'
+          }
+        } else {
+          throw new Error(uploadResponse.data.message || '文件上传失败')
         }
-      }, 100)
-      
-      // 等待模拟上传完成
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      // 设置模拟的URL
-      if (currentFileType.value === 'image') {
-        currentMaterial.value.imageUrl = currentFilePreview.value
-        currentMaterial.value.type = 'banner'
-      } else if (currentFileType.value === 'video') {
-        currentMaterial.value.videoUrl = currentFilePreview.value
-        currentMaterial.value.type = 'video'
+      } catch (uploadError) {
+        isUploading.value = false
+        console.error('文件上传失败:', uploadError)
+        alert('文件上传失败: ' + (uploadError.response?.data?.message || uploadError.message || '未知错误'))
+        return
       }
     }
     
@@ -499,7 +516,7 @@ const saveMaterial = async () => {
     closeModal()
   } catch (error) {
     console.error('保存广告素材失败:', error)
-    alert('保存失败: ' + (error.response?.data?.message || '未知错误'))
+    alert('保存失败: ' + (error.response?.data?.message || error.message || '未知错误'))
   }
 }
 
