@@ -8,4 +8,6 @@ import java.util.List;
 @Repository
 public interface AdMaterialRepository extends JpaRepository<AdMaterial, Long> {
     List<AdMaterial> findByCategoryAndStatusOrderByBidPriceDesc(String category, Integer status);
+
+    List<AdMaterial> findByStatus(Integer status);
 }

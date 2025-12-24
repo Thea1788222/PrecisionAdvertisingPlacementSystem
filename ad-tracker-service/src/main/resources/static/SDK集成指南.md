@@ -5,7 +5,7 @@
 ## 1. SDK概述
 
 广告追踪SDK是一个轻量级的JavaScript库，提供了以下核心功能：
-- 用户行为追踪（页面浏览、点击等）
+- 用户行为追踪（页面浏览、点击、搜索等）
 - 广告展示与点击追踪
 - 个性化广告推荐
 - 跨域用户识别
@@ -44,7 +44,7 @@ http://track.yourdomain.com/ad-tracker.js
 ```javascript
 adTracker.init({
   trackerServer: 'http://track.yourdomain.com',  // 追踪服务地址
-  website: 'your-website-name'                   // 网站标识
+  website: 'your-website-name'                   // 网站类别，如：shop、video、news
 });
 ```
 
@@ -54,38 +54,84 @@ adTracker.init({
 
 ### 3.3 页面浏览追踪
 
-在页面加载完成后调用此方法记录页面浏览：
+在用户实际浏览内容时调用此方法记录页面浏览：
 
+例如：当用户在一个电子产品的区域内停留30秒时，调用以下代码：
 ```javascript
 adTracker.trackPageView({
-  targetId: 'page-url-or-id',    // 页面URL或ID（可选，默认为当前页面路径）
-  category: 'page-category',     // 页面分类（可选）
-  keywords: 'keyword1,keyword2'  // 关键词（可选）
-});
+  targetId: 'product_123',        // 目标ID，如商品id、文章id、视频id、广告id
+  category: 'electronics',        // 类别，如electronics, fashion, food, sports, home
+  duration: 30                    // 页面浏览时长，单位秒（1-3600秒）
+});                
 ```
+
+参数限制：
+- `targetId`: 建议使用"类型_具体ID"格式
+- `category`: 使用预定义类别值
+- `duration`: 1-3600秒，表示用户在该内容上停留的时间
 
 ### 3.4 点击事件追踪
 
-为需要追踪的元素添加点击事件监听器：
+为需要追踪的元素添加点击事件监听器，并调用此方法记录点击：
+
+主要记录广告区域点击事件，例如当一个用户点击了一个运动鞋广告时，调用以下代码：
 
 ```javascript
-document.getElementById('button-id').addEventListener('click', function() {
-  adTracker.trackClick({
-    targetId: 'button-id',      // 点击目标ID
-    category: 'button-category' // 点击目标分类（可选）
-  });
+adTracker.trackClick({
+    targetId: 'ad_123',              // 目标ID，如广告id
+    category: 'sports',              // 类别，如electronics, fashion, food, sports, home
+    duration: 1                     // 操作时长，单位秒（1秒）
+});    
+```
+
+参数限制：
+- `targetId`: 唯一标识被点击的目标
+- `category`: 表示点击目标的类型
+- `duration`: 固定为1秒，表示点击操作的持续时间
+
+### 3.5 搜索事件追踪
+
+当用户执行搜索操作时调用此方法记录搜索行为：
+
+```javascript
+adTracker.trackSearch({
+    targetId: 'search_input',       // 搜索框或搜索结果页ID
+    category: 'search',             // 类别，固定为'search'
+    keywords: 'iPhone 15 Pro',      // 搜索关键词
+    duration: 2                     // 搜索操作时长，单位秒（1-30秒）
 });
 ```
 
-### 3.5 获取推荐广告
+参数限制：
+- `targetId`: 标识搜索操作的位置
+- `category`: 类别，固定为'search'
+- `keywords`: 用户实际输入的搜索内容
+- `duration`: 1-30秒，表示搜索操作的持续时间
+
+### 3.6 通用行为追踪
+
+SDK提供了一个通用方法，可以追踪各种类型的行为：
+
+```javascript
+adTracker.trackBehavior('watch', {  // 'watch'可替换为'view', 'click', 'search'等
+    targetId: 'video_456',          // 目标ID（最大长度50字符）
+    category: 'entertainment',      // 类别（最大长度30字符）
+    keywords: 'movie, comedy',      // 关键词（最大长度200字符）
+    duration: 120                   // 持续时间，单位秒（1-3600秒）
+});
+```
+
+参数限制同上。
+
+### 3.7 获取推荐广告
 
 获取个性化推荐广告并在页面上展示：
 
 ```javascript
 adTracker.getRecommendedAds({
-  positions: ['top-banner', 'sidebar'],  // 广告位标识数组
-  category: 'electronics',               // 广告类别（可选）
-  count: 5                               // 获取广告数量（可选，默认为5）
+  positions: ['top-banner', 'sidebar'],  // 广告位标识数组（最多10个位置）
+  category: 'electronics',               // 广告类别，如electronics, fashion等（最大长度30字符）
+  count: 3                               // 获取广告数量（1-10个）
 }).then(function(ads) {
   // 渲染广告到页面
   renderAds(ads);
@@ -94,7 +140,12 @@ adTracker.getRecommendedAds({
 });
 ```
 
-### 3.6 广告展示追踪
+参数限制：
+- `positions`: 每个位置标识最大长度30字符
+- `category`: 指定推荐广告的类别
+- `count`: 1-10，指定需要获取的广告数量
+
+### 3.8 广告展示追踪
 
 当广告即将展示给用户时调用此方法：
 
@@ -103,11 +154,13 @@ adTracker.trackAdImpression(adId, position, bidPrice);
 ```
 
 参数说明：
-- `adId`: 广告ID
-- `position`: 广告位标识
-- `bidPrice`: 广告出价
+- `adId`: 广告ID（在获取推荐广告时由服务端返回）
+- `position`: 广告位标识（在获取推荐广告时由服务端返回）
+- `bidPrice`: 广告出价（在获取推荐广告时由服务端返回）
 
-### 3.7 广告点击追踪
+**重要说明：** 服务端会返回广告展示记录的ID（impressionId），此ID需要保存用于后续的广告点击追踪。
+
+### 3.9 广告点击追踪
 
 当用户点击广告时调用此方法：
 
@@ -118,219 +171,14 @@ adTracker.trackAdClick(impressionId);
 参数说明：
 - `impressionId`: 广告展示ID（在广告展示时由服务端返回）
 
-## 4. 各业务网站集成示例
+**重要说明：** 必须使用在广告展示时服务端返回的impressionId来追踪广告点击，以确保广告展示与点击之间的关联关系。
 
-### 4.1 购物网站集成示例
+### 3.10 广告展示-点击关联机制
 
-```html
-<!DOCTYPE html>
-<html>
-<head>
-  <title>购物网站</title>
-  <script src="http://track.yourdomain.com/ad-tracker.js"></script>
-</head>
-<body>
-  <div id="product-list">
-    <!-- 商品列表 -->
-  </div>
-  
-  <div id="top-banner-ad">
-    <!-- 顶部横幅广告容器 -->
-  </div>
-  
-  <script>
-    // 初始化SDK
-    adTracker.init({
-      trackerServer: 'http://track.yourdomain.com',
-      website: 'shopping-website'
-    });
-    
-    // 记录页面浏览
-    adTracker.trackPageView({
-      targetId: window.location.pathname,
-      category: 'product-listing'
-    });
-    
-    // 获取推荐广告
-    adTracker.getRecommendedAds({
-      positions: ['top-banner'],
-      category: 'electronics',
-      count: 3
-    }).then(function(ads) {
-      // 渲染顶部横幅广告
-      renderBannerAds(ads, 'top-banner-ad');
-    });
-    
-    // 为商品添加点击追踪
-    document.querySelectorAll('.product-item').forEach(function(item) {
-      item.addEventListener('click', function() {
-        adTracker.trackClick({
-          targetId: this.dataset.productId,
-          category: 'product'
-        });
-      });
-    });
-  </script>
-</body>
-</html>
-```
+为了正确追踪广告的展示-点击转化，必须遵循以下流程：
 
-### 4.2 视频网站集成示例
-
-```html
-<!DOCTYPE html>
-<html>
-<head>
-  <title>视频网站</title>
-  <script src="http://track.yourdomain.com/ad-tracker.js"></script>
-</head>
-<body>
-  <div id="video-player">
-    <!-- 视频播放器 -->
-  </div>
-  
-  <div id="video-list">
-    <!-- 视频列表 -->
-  </div>
-  
-  <script>
-    // 初始化SDK
-    adTracker.init({
-      trackerServer: 'http://track.yourdomain.com',
-      website: 'video-website'
-    });
-    
-    // 记录页面浏览
-    adTracker.trackPageView({
-      targetId: window.location.pathname,
-      category: 'video-watching'
-    });
-    
-    // 视频播放时追踪
-    function onVideoPlay(videoId) {
-      adTracker.trackClick({
-        targetId: videoId,
-        category: 'video-play'
-      });
-    }
-    
-    // 视频结束时追踪
-    function onVideoComplete(videoId) {
-      adTracker.trackClick({
-        targetId: videoId,
-        category: 'video-complete'
-      });
-    }
-  </script>
-</body>
-</html>
-```
-
-### 4.3 新闻网站集成示例
-
-```html
-<!DOCTYPE html>
-<html>
-<head>
-  <title>新闻网站</title>
-  <script src="http://track.yourdomain.com/ad-tracker.js"></script>
-</head>
-<body>
-  <article id="news-content">
-    <!-- 新闻内容 -->
-  </article>
-  
-  <aside id="sidebar-ads">
-    <!-- 侧边栏广告容器 -->
-  </aside>
-  
-  <script>
-    // 初始化SDK
-    adTracker.init({
-      trackerServer: 'http://track.yourdomain.com',
-      website: 'news-website'
-    });
-    
-    // 记录页面浏览
-    adTracker.trackPageView({
-      targetId: window.location.pathname,
-      category: 'news-reading'
-    });
-    
-    // 获取侧边栏推荐广告
-    adTracker.getRecommendedAds({
-      positions: ['sidebar'],
-      category: 'news',
-      count: 5
-    }).then(function(ads) {
-      // 渲染侧边栏广告
-      renderSidebarAds(ads, 'sidebar-ads');
-    });
-    
-    // 文章分享按钮点击追踪
-    document.getElementById('share-button').addEventListener('click', function() {
-      adTracker.trackClick({
-        targetId: 'share-button',
-        category: 'social-share'
-      });
-    });
-  </script>
-</body>
-</html>
-```
-
-## 5. 跨域用户识别配置
-
-为了在多个网站间实现统一的用户识别，请确保：
-
-1. 所有网站的追踪服务地址配置相同
-2. 确保广告追踪服务支持浏览器指纹进行用户识别
-3. 在本地开发环境中，配置正确的hosts文件以模拟多域名环境
-
-## 6. 最佳实践
-
-### 6.1 性能优化
-
-- 将SDK文件放在页面底部，避免阻塞页面渲染
-- 使用异步加载方式引入SDK
-- 避免频繁调用追踪方法，适当合并事件
-
-### 6.2 错误处理
-
-- 在调用SDK方法时添加适当的错误处理
-- 监控网络请求状态，确保数据正确发送到服务端
-
-### 6.3 隐私保护
-
-- 遵守相关法律法规，如GDPR、CCPA等
-- 在收集用户数据前提供明确的通知和选择退出机制
-- 仅收集必要的用户行为数据
-
-## 7. 故障排除
-
-### 7.1 SDK未正确加载
-
-检查：
-- 网络连接是否正常
-- SDK文件URL是否正确
-- 浏览器控制台是否有加载错误
-
-### 7.2 数据未正确上报
-
-检查：
-- 初始化配置是否正确
-- 网络请求是否被防火墙或广告拦截器阻止
-- 服务端接口是否正常工作
-
-### 7.3 跨域识别问题
-
-检查：
-- 域名配置是否正确
-- Cookie或浏览器指纹是否正常工作
-- 是否遵守了浏览器的安全策略
-
-## 8. 技术支持
-
-如有任何集成问题，请联系技术支持团队：
-- 邮箱：support@adtracking.com
-- 电话：400-xxx-xxxx
+1. 调用[trackAdImpression](file:///Users/DaYang/ProjectCode/JavaDevelopProject/PrecisionAdvertisingPlacementSystem/ad-tracker-service/src/main/resources/static/shopping-test.js#L205-L215)记录广告展示
+2. 服务端返回广告展示记录的ID（impressionId）
+3. 将impressionId与广告元素进行关联存储
+4. 当用户点击广告时，使用对应的impressionId调用[trackAdClick](file:///Users/DaYang/ProjectCode/JavaDevelopProject/PrecisionAdvertisingPlacementSystem/ad-tracker-service/src/main/resources/static/shopping-test.js#L218-L228)
+5. 这样可以建立广告展示与点击之间的准确关联关系
