@@ -20,8 +20,7 @@ public class AdImpressionServiceImpl implements AdImpressionService {
     /**
      * 保存广告展示记录
      */
-    public AdImpression saveAdImpression(Long adId, String userFingerprint, String website, 
-                                       String position, BigDecimal bidPrice) {
+    public AdImpression saveAdImpression(Long adId, String userFingerprint, String website, String position, BigDecimal bidPrice) {
         try {
             AdImpression impression = new AdImpression();
             impression.setAdId(adId);
