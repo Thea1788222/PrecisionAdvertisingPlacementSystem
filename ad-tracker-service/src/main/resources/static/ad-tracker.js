@@ -228,15 +228,15 @@
          */
         trackBehavior: function(type, options) {
             var data = {
-                userFingerprint: this.generateFingerprint(),    // 用户指纹
-                website: this.config.website,        // 网站类型，shop、video、news
-                actionType: type,                    // 行为类型 view、click、search
-                targetId: options.targetId || '',    // 目标ID，商品id、视频id、广告id
-                category: options.category || '',    // 类别，electronics, fashion, food, sports, home
-                keywords: options.keywords || '',    // 搜索关键词
-                duration: options.duration || (type === 'click' ? 1 : 10),    // 持续时长，默认点击1秒，浏览10秒
-                ipAddress: '',
-                userAgent: navigator.userAgent
+                userFingerprint: this.generateFingerprint(),    // 用户指纹（必需）
+                website: this.config.website,        // 网站类型，shop、video、news（必需）
+                actionType: type,                    // 行为类型 view、click、search（必需）
+                targetId: options.targetId || '',    // 目标ID，商品id、视频id、新闻id、广告id（必需）
+                category: options.category || '',    // 类别，electronics、fashion、sports、home、food、travel、education、finance、health、beauty等（必需）
+                keywords: options.keywords || '',    // 搜索关键词（搜索行为必需）
+                duration: options.duration || (type === 'click' ? 1 : 10),  // 持续时长，默认点击1秒，浏览10秒（必需）
+                ipAddress: '',    // IP地址（可选）
+                userAgent: navigator.userAgent || ''    // 用户代理字符串（可选）
             };
 
             this.sendRequest('/api/track/behavior', data);
@@ -271,10 +271,10 @@
             return new Promise(function(resolve, reject) {
                 var data = {
                     adId: adId,
-                    userFingerprint: self.generateFingerprint(),    // 用户指纹
-                    website: self.config.website,        // 网站类型，shop、video、news
-                    position: position,  
-                    bidPrice: bidPrice                   
+                    userFingerprint: self.generateFingerprint(),    // 用户指纹（必需）
+                    website: self.config.website,        // 网站类型，shop、video、news（必需）
+                    position: position,                  // 广告展示的位置（必需）
+                    bidPrice: bidPrice                    // 竞价价格（必需）
                 };
 
                 self.sendRequest('/api/track/impression', data, function(err, response) {
@@ -293,8 +293,8 @@
          */
         trackAdClick: function(impressionId) {
             var data = {
-                impressionId: impressionId,
-                userFingerprint: this.generateFingerprint()
+                impressionId: impressionId || '',    // 广告展示ID（必需）
+                userFingerprint: this.generateFingerprint()   // 用户指纹（必需）
             };
 
             this.sendRequest('/api/track/click', data);
@@ -307,11 +307,12 @@
             var self = this;
             return new Promise(function(resolve, reject) {
                 var data = {
-                    userFingerprint: self.generateFingerprint(),    // 用户指纹
-                    website: self.config.website,        // 网站类型，shop、video、news
-                    positions: options.positions || [],
-                    category: options.category || '',    // 类别，electronics, fashion, food, sports, home
-                    count: options.count || 1            //  广告数量
+                    userFingerprint: self.generateFingerprint(),    // 用户指纹（必需）
+                    website: self.config.website,        // 网站类型，shop、video、news（必需）
+                    positions: options.positions || [],  // 广告位置，数组格式（必需）
+                    category: options.category || '',    // 类别，electronics、fashion、sports、home、food、travel、education、finance、health、beauty（可选）
+                    type: options.type || '',             // 广告类型，video, native（图片）（必需）
+                    count: options.count || 1            //  广告数量（必需）
                 };
 
                 self.sendRequest('/api/ad/recommend', data, function(err, response) {
