@@ -16,6 +16,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.Map;
 
 @Service
 public class AdRecommendationServiceImpl implements AdRecommendationService {
@@ -50,8 +51,9 @@ public class AdRecommendationServiceImpl implements AdRecommendationService {
         
         // 如果指定了类型，优先获取指定类型的广告
         if (type != null && !type.isEmpty()) {
-            // 阶段1：获取指定类型的精准投放广告
+            // 阶段1：用户的行为分 >= 50的精准投放广告
             if (userProfile != null && userProfile.getBehaviorScore() != null && userProfile.getBehaviorScore() >= 50) {
+                // 获取指定类型的精准投放广告
                 List<AdMaterial> precisionAds = getPrecisionAdsByType(userFingerprint, userProfile, category, type, count);
                 for (AdMaterial ad : precisionAds) {
                     if (usedAdIds.add(ad.getId()) && result.size() < count) {
@@ -60,8 +62,9 @@ public class AdRecommendationServiceImpl implements AdRecommendationService {
                 }
             }
             
-            // 阶段2：获取指定类型的兴趣探索广告
+            // 阶段2：用户行为分 < 50的兴趣探索广告
             if (result.size() < count && userProfile != null) {
+                // 获取指定类型的兴趣探索广告
                 List<AdMaterial> explorationAds = getExplorationAdsByType(userProfile, category, type, count - result.size());
                 for (AdMaterial ad : explorationAds) {
                     if (usedAdIds.add(ad.getId()) && result.size() < count) {
@@ -70,7 +73,8 @@ public class AdRecommendationServiceImpl implements AdRecommendationService {
                 }
             }
             
-            // 阶段3：获取指定类型的冷启动广告
+            // 阶段3：用户行为分为0的冷启动广告
+            // 获取指定类型的冷启动广告
             if (result.size() < count) {
                 List<AdMaterial> coldStartAds = getColdStartAdsByType(category, type, count - result.size());
                 for (AdMaterial ad : coldStartAds) {
@@ -121,7 +125,7 @@ public class AdRecommendationServiceImpl implements AdRecommendationService {
                 }
             }
         } else {
-            // 如果没有指定类型，使用原有逻辑
+            // 如果没有指定类型
             // 阶段1：精准投放 - 获取最符合用户画像的广告
             if (userProfile != null && userProfile.getBehaviorScore() != null && userProfile.getBehaviorScore() >= 50) {
                 List<AdMaterial> precisionAds = getPrecisionAds(userFingerprint, userProfile, category, count);
@@ -170,13 +174,15 @@ public class AdRecommendationServiceImpl implements AdRecommendationService {
         
         if (category != null && !category.isEmpty()) {
             materials = adMaterialRepository.findByCategoryAndStatusOrderByBidPriceDesc(category, 1);
-        } else if (userProfile.getCategories() != null && !userProfile.getCategories().isEmpty()) {
-            // 根据用户画像中的类别推荐
-            String[] categories = userProfile.getCategories().split(",");
-            materials = adMaterialRepository.findByCategoryAndStatusOrderByBidPriceDesc(categories[0], 1);
         } else {
-            // 兜底方案
-            materials = adMaterialRepository.findByCategoryAndStatusOrderByBidPriceDesc("electronics", 1);
+            // 使用用户画像中的兴趣类别
+            String topInterestCategory = userProfileService.getTopInterestCategory(userProfile);
+            if (topInterestCategory != null) {
+                materials = adMaterialRepository.findByCategoryAndStatusOrderByBidPriceDesc(topInterestCategory, 1);
+            } else {
+                // 兜底方案
+                materials = adMaterialRepository.findByCategoryAndStatusOrderByBidPriceDesc("electronics", 1);
+            }
         }
         
         // 获取用户行为数据用于计算兴趣权重
@@ -203,23 +209,28 @@ public class AdRecommendationServiceImpl implements AdRecommendationService {
         
         if (category != null && !category.isEmpty()) {
             materials = adMaterialRepository.findByCategoryAndStatusOrderByBidPriceDesc(category, 1);
-        } else if (userProfile.getCategories() != null && !userProfile.getCategories().isEmpty()) {
-            // 根据用户画像中的类别推荐
-            String[] categories = userProfile.getCategories().split(",");
-            materials = adMaterialRepository.findByCategoryAndStatusOrderByBidPriceDesc(categories[0], 1);
         } else {
-            // 兜底方案
-            materials = adMaterialRepository.findByCategoryAndStatusOrderByBidPriceDesc("electronics", 1);
+            // 使用用户画像中的兴趣类别
+            String topInterestCategory = userProfileService.getTopInterestCategory(userProfile);
+            if (topInterestCategory != null) {
+                materials = adMaterialRepository.findByCategoryAndStatusOrderByBidPriceDesc(topInterestCategory, 1);
+            } else {
+                // 兜底方案
+                materials = adMaterialRepository.findByCategoryAndStatusOrderByBidPriceDesc("electronics", 1);
+            }
         }
         
         // 计算类别匹配度并排序
-        String userCategory = userProfile.getCategories() != null ? 
-            userProfile.getCategories().split(",")[0] : "electronics";
-            
+        String userCategory = userProfileService.getTopInterestCategory(userProfile);
+        if (userCategory == null) {
+            userCategory = "electronics";
+        }
+
+        String finalUserCategory = userCategory;
         List<AdMaterial> sortedMaterials = materials.stream()
             .sorted((a, b) -> {
-                double matchA = a.getCategory().equals(userCategory) ? 1.0 : 0.0;
-                double matchB = b.getCategory().equals(userCategory) ? 1.0 : 0.0;
+                double matchA = a.getCategory().equals(finalUserCategory) ? 1.0 : 0.0;
+                double matchB = b.getCategory().equals(finalUserCategory) ? 1.0 : 0.0;
                 
                 double scoreA = a.getBidPrice().doubleValue() * (1 + matchA * 0.5);
                 double scoreB = b.getBidPrice().doubleValue() * (1 + matchB * 0.5);
@@ -298,7 +309,7 @@ public class AdRecommendationServiceImpl implements AdRecommendationService {
         double bidPrice = ad.getBidPrice().doubleValue();
         
         // 计算兴趣权重
-        double interestWeight = calculateInterestWeight(ad, behaviors);
+        double interestWeight = calculateInterestWeight(ad, behaviors, userProfile);
         
         // 计算时间衰减因子 (λ=0.1)
         double timeDecay = calculateTimeDecay(userProfile);
@@ -312,9 +323,17 @@ public class AdRecommendationServiceImpl implements AdRecommendationService {
      * 兴趣权重 = Σ(行为权重 × 类别相关度)
      * 行为权重：浏览(0.1) < 搜索(0.3) < 点击(0.5) < 购买(1.0)
      */
-    private double calculateInterestWeight(AdMaterial ad, List<UserBehavior> behaviors) {
+    private double calculateInterestWeight(AdMaterial ad, List<UserBehavior> behaviors, UserProfile userProfile) {
         double weight = 0.0;
         
+        // 从用户画像中获取兴趣权重
+        Map<String, Double> userInterests = userProfileService.parseInterests(userProfile);
+        Double categoryWeight = userInterests.get(ad.getCategory());
+        if (categoryWeight != null) {
+            weight += categoryWeight;
+        }
+        
+        // 同时考虑用户行为
         for (UserBehavior behavior : behaviors) {
             if (behavior.getCategory() == null || !behavior.getCategory().equals(ad.getCategory())) {
                 continue;
@@ -356,22 +375,26 @@ public class AdRecommendationServiceImpl implements AdRecommendationService {
      * 根据类型获取精准投放阶段的广告
      */
     private List<AdMaterial> getPrecisionAdsByType(String userFingerprint, UserProfile userProfile, String category, String type, int count) {
+        
         List<AdMaterial> materials;
         
         if (category != null && !category.isEmpty()) {
+            // 根据类别推荐
             materials = adMaterialRepository.findByCategoryAndTypeAndStatusOrderByBidPriceDesc(category, type, 1);
-        } else if (userProfile.getCategories() != null && !userProfile.getCategories().isEmpty()) {
-            // 根据用户画像中的类别推荐
-            String[] categories = userProfile.getCategories().split(",");
-            materials = adMaterialRepository.findByCategoryAndTypeAndStatusOrderByBidPriceDesc(categories[0], type, 1);
         } else {
-            // 兜底方案
-            materials = adMaterialRepository.findByCategoryAndTypeAndStatusOrderByBidPriceDesc("electronics", type, 1);
+            // 使用用户画像中的兴趣类别
+            String topInterestCategory = userProfileService.getTopInterestCategory(userProfile);
+            if (topInterestCategory != null) {
+                materials = adMaterialRepository.findByCategoryAndTypeAndStatusOrderByBidPriceDesc(topInterestCategory, type, 1);
+            } else {
+                // 兜底方案
+                materials = adMaterialRepository.findByCategoryAndTypeAndStatusOrderByBidPriceDesc("electronics", type, 1);
+            }
         }
         
         // 获取用户行为数据用于计算兴趣权重
         List<UserBehavior> behaviors = userBehaviorRepository.findByUserFingerprint(userFingerprint);
-        
+         
         // 计算每个广告的综合得分并排序
         List<AdMaterial> sortedMaterials = materials.stream()
             .sorted((a, b) -> {
@@ -389,27 +412,34 @@ public class AdRecommendationServiceImpl implements AdRecommendationService {
      * 根据类型获取兴趣探索阶段的广告
      */
     private List<AdMaterial> getExplorationAdsByType(UserProfile userProfile, String category, String type, int count) {
+        
         List<AdMaterial> materials;
         
         if (category != null && !category.isEmpty()) {
+            // 根据类别推荐
             materials = adMaterialRepository.findByCategoryAndTypeAndStatusOrderByBidPriceDesc(category, type, 1);
-        } else if (userProfile.getCategories() != null && !userProfile.getCategories().isEmpty()) {
-            // 根据用户画像中的类别推荐
-            String[] categories = userProfile.getCategories().split(",");
-            materials = adMaterialRepository.findByCategoryAndTypeAndStatusOrderByBidPriceDesc(categories[0], type, 1);
         } else {
-            // 兜底方案
-            materials = adMaterialRepository.findByCategoryAndTypeAndStatusOrderByBidPriceDesc("electronics", type, 1);
+            // 使用用户画像中的兴趣类别
+            String topInterestCategory = userProfileService.getTopInterestCategory(userProfile);
+            if (topInterestCategory != null) {
+                materials = adMaterialRepository.findByCategoryAndTypeAndStatusOrderByBidPriceDesc(topInterestCategory, type, 1);
+            } else {
+                // 兜底方案
+                materials = adMaterialRepository.findByCategoryAndTypeAndStatusOrderByBidPriceDesc("electronics", type, 1);
+            }
         }
         
         // 计算类别匹配度并排序
-        String userCategory = userProfile.getCategories() != null ? 
-            userProfile.getCategories().split(",")[0] : "electronics";
-            
+        String userCategory = userProfileService.getTopInterestCategory(userProfile);
+        if (userCategory == null) {
+            userCategory = "electronics";
+        }
+
+        String finalUserCategory = userCategory;
         List<AdMaterial> sortedMaterials = materials.stream()
             .sorted((a, b) -> {
-                double matchA = a.getCategory().equals(userCategory) ? 1.0 : 0.0;
-                double matchB = b.getCategory().equals(userCategory) ? 1.0 : 0.0;
+                double matchA = a.getCategory().equals(finalUserCategory) ? 1.0 : 0.0;
+                double matchB = b.getCategory().equals(finalUserCategory) ? 1.0 : 0.0;
                 
                 double scoreA = a.getBidPrice().doubleValue() * (1 + matchA * 0.5);
                 double scoreB = b.getBidPrice().doubleValue() * (1 + matchB * 0.5);
@@ -429,6 +459,7 @@ public class AdRecommendationServiceImpl implements AdRecommendationService {
         List<AdMaterial> materials = new ArrayList<>();
         
         if (category != null && !category.isEmpty()) {
+            // 根据类别推荐
             materials = adMaterialRepository.findByCategoryAndTypeAndStatusOrderByBidPriceDesc(category, type, 1);
         } else {
             // 如果没有指定类别，则返回所有启用状态的广告作为兜底
@@ -456,14 +487,17 @@ public class AdRecommendationServiceImpl implements AdRecommendationService {
         List<AdMaterial> materials;
         
         if (category != null && !category.isEmpty()) {
+            // 根据类别推荐
             materials = adMaterialRepository.findByCategoryAndStatusExcludingTypeOrderByBidPriceDesc(category, excludedType, 1);
-        } else if (userProfile.getCategories() != null && !userProfile.getCategories().isEmpty()) {
-            // 根据用户画像中的类别推荐
-            String[] categories = userProfile.getCategories().split(",");
-            materials = adMaterialRepository.findByCategoryAndStatusExcludingTypeOrderByBidPriceDesc(categories[0], excludedType, 1);
         } else {
-            // 兜底方案
-            materials = adMaterialRepository.findByCategoryAndStatusExcludingTypeOrderByBidPriceDesc("electronics", excludedType, 1);
+            // 使用用户画像中的兴趣类别
+            String topInterestCategory = userProfileService.getTopInterestCategory(userProfile);
+            if (topInterestCategory != null) {
+                materials = adMaterialRepository.findByCategoryAndStatusExcludingTypeOrderByBidPriceDesc(topInterestCategory, excludedType, 1);
+            } else {
+                // 兜底方案
+                materials = adMaterialRepository.findByCategoryAndStatusExcludingTypeOrderByBidPriceDesc("electronics", excludedType, 1);
+            }
         }
         
         // 获取用户行为数据用于计算兴趣权重
@@ -490,23 +524,28 @@ public class AdRecommendationServiceImpl implements AdRecommendationService {
         
         if (category != null && !category.isEmpty()) {
             materials = adMaterialRepository.findByCategoryAndStatusExcludingTypeOrderByBidPriceDesc(category, excludedType, 1);
-        } else if (userProfile.getCategories() != null && !userProfile.getCategories().isEmpty()) {
-            // 根据用户画像中的类别推荐
-            String[] categories = userProfile.getCategories().split(",");
-            materials = adMaterialRepository.findByCategoryAndStatusExcludingTypeOrderByBidPriceDesc(categories[0], excludedType, 1);
         } else {
-            // 兜底方案
-            materials = adMaterialRepository.findByCategoryAndStatusExcludingTypeOrderByBidPriceDesc("electronics", excludedType, 1);
+            // 使用用户画像中的兴趣类别
+            String topInterestCategory = userProfileService.getTopInterestCategory(userProfile);
+            if (topInterestCategory != null) {
+                materials = adMaterialRepository.findByCategoryAndStatusExcludingTypeOrderByBidPriceDesc(topInterestCategory, excludedType, 1);
+            } else {
+                // 兜底方案
+                materials = adMaterialRepository.findByCategoryAndStatusExcludingTypeOrderByBidPriceDesc("electronics", excludedType, 1);
+            }
         }
         
         // 计算类别匹配度并排序
-        String userCategory = userProfile.getCategories() != null ? 
-            userProfile.getCategories().split(",")[0] : "electronics";
-            
+        String userCategory = userProfileService.getTopInterestCategory(userProfile);
+        if (userCategory == null) {
+            userCategory = "electronics";
+        }
+
+        String finalUserCategory = userCategory;
         List<AdMaterial> sortedMaterials = materials.stream()
             .sorted((a, b) -> {
-                double matchA = a.getCategory().equals(userCategory) ? 1.0 : 0.0;
-                double matchB = b.getCategory().equals(userCategory) ? 1.0 : 0.0;
+                double matchA = a.getCategory().equals(finalUserCategory) ? 1.0 : 0.0;
+                double matchB = b.getCategory().equals(finalUserCategory) ? 1.0 : 0.0;
                 
                 double scoreA = a.getBidPrice().doubleValue() * (1 + matchA * 0.5);
                 double scoreB = b.getBidPrice().doubleValue() * (1 + matchB * 0.5);
