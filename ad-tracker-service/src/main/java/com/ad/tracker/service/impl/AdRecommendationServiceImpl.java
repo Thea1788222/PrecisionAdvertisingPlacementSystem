@@ -32,9 +32,11 @@ public class AdRecommendationServiceImpl implements AdRecommendationService {
     /**
      * 获取推荐广告
      * 实现多阶段组合推荐，确保返回指定数量的广告
+     * 优先返回指定类型的广告，如果数量不足则用其他类型填充
      */
     public List<AdMaterial> getRecommendedAds(String userFingerprint, String website, 
-                                            List<String> positions, String category, int count) {
+                                            List<String> positions, String category, String type, int count) {
+
         List<AdMaterial> result = new ArrayList<>();
         Set<Long> usedAdIds = new HashSet<>(); // 用于去重
         
@@ -46,40 +48,115 @@ public class AdRecommendationServiceImpl implements AdRecommendationService {
         // 获取用户画像
         UserProfile userProfile = userProfileService.getUserProfileByFingerprint(userFingerprint);
         
-        // 阶段1：精准投放 - 获取最符合用户画像的广告
-        if (userProfile != null && userProfile.getBehaviorScore() != null && userProfile.getBehaviorScore() >= 50) {
-            List<AdMaterial> precisionAds = getPrecisionAds(userFingerprint, userProfile, category, count);
-            for (AdMaterial ad : precisionAds) {
-                if (usedAdIds.add(ad.getId()) && result.size() < count) {
-                    result.add(ad);
+        // 如果指定了类型，优先获取指定类型的广告
+        if (type != null && !type.isEmpty()) {
+            // 阶段1：获取指定类型的精准投放广告
+            if (userProfile != null && userProfile.getBehaviorScore() != null && userProfile.getBehaviorScore() >= 50) {
+                List<AdMaterial> precisionAds = getPrecisionAdsByType(userFingerprint, userProfile, category, type, count);
+                for (AdMaterial ad : precisionAds) {
+                    if (usedAdIds.add(ad.getId()) && result.size() < count) {
+                        result.add(ad);
+                    }
                 }
             }
-        }
-        
-        // 阶段2：兴趣探索 - 如果数量不足，补充兴趣探索阶段的广告
-        if (result.size() < count && userProfile != null) {
-            List<AdMaterial> explorationAds = getExplorationAds(userProfile, category, count - result.size());
-            for (AdMaterial ad : explorationAds) {
-                if (usedAdIds.add(ad.getId()) && result.size() < count) {
-                    result.add(ad);
+            
+            // 阶段2：获取指定类型的兴趣探索广告
+            if (result.size() < count && userProfile != null) {
+                List<AdMaterial> explorationAds = getExplorationAdsByType(userProfile, category, type, count - result.size());
+                for (AdMaterial ad : explorationAds) {
+                    if (usedAdIds.add(ad.getId()) && result.size() < count) {
+                        result.add(ad);
+                    }
                 }
             }
-        }
-        
-        // 阶段3：冷启动 - 如果数量仍然不足，补充冷启动阶段的广告
-        if (result.size() < count) {
-            List<AdMaterial> coldStartAds = getColdStartAds(category, count - result.size());
-            for (AdMaterial ad : coldStartAds) {
-                if (usedAdIds.add(ad.getId()) && result.size() < count) {
-                    result.add(ad);
+            
+            // 阶段3：获取指定类型的冷启动广告
+            if (result.size() < count) {
+                List<AdMaterial> coldStartAds = getColdStartAdsByType(category, type, count - result.size());
+                for (AdMaterial ad : coldStartAds) {
+                    if (usedAdIds.add(ad.getId()) && result.size() < count) {
+                        result.add(ad);
+                    }
                 }
             }
-        }
-        
-        // 阶段4：兜底策略 - 如果仍然不足，补充随机广告
-        if (result.size() < count) {
-            List<AdMaterial> randomAds = getRandomAds(count - result.size(), usedAdIds);
-            result.addAll(randomAds);
+            
+            // 阶段4：如果指定类型的广告仍然不足，用其他类型填充
+            if (result.size() < count) {
+                int remainingCount = count - result.size();
+                
+                // 先尝试获取其他类型的高优先级广告
+                if (userProfile != null && userProfile.getBehaviorScore() != null && userProfile.getBehaviorScore() >= 50) {
+                    List<AdMaterial> otherTypePrecisionAds = getPrecisionAdsByOtherTypes(userFingerprint, userProfile, category, type, remainingCount);
+                    for (AdMaterial ad : otherTypePrecisionAds) {
+                        if (usedAdIds.add(ad.getId()) && result.size() < count) {
+                            result.add(ad);
+                        }
+                    }
+                }
+                
+                remainingCount = count - result.size();
+                if (result.size() < count && userProfile != null) {
+                    List<AdMaterial> otherTypeExplorationAds = getExplorationAdsByOtherTypes(userProfile, category, type, remainingCount);
+                    for (AdMaterial ad : otherTypeExplorationAds) {
+                        if (usedAdIds.add(ad.getId()) && result.size() < count) {
+                            result.add(ad);
+                        }
+                    }
+                }
+                
+                remainingCount = count - result.size();
+                if (result.size() < count) {
+                    List<AdMaterial> otherTypeColdStartAds = getColdStartAdsByOtherTypes(category, type, remainingCount);
+                    for (AdMaterial ad : otherTypeColdStartAds) {
+                        if (usedAdIds.add(ad.getId()) && result.size() < count) {
+                            result.add(ad);
+                        }
+                    }
+                }
+                
+                // 阶段5：兜底策略 - 如果仍然不足，补充随机广告（包含所有类型）
+                if (result.size() < count) {
+                    List<AdMaterial> randomAds = getRandomAdsByOtherTypes(count - result.size(), usedAdIds, type);
+                    result.addAll(randomAds);
+                }
+            }
+        } else {
+            // 如果没有指定类型，使用原有逻辑
+            // 阶段1：精准投放 - 获取最符合用户画像的广告
+            if (userProfile != null && userProfile.getBehaviorScore() != null && userProfile.getBehaviorScore() >= 50) {
+                List<AdMaterial> precisionAds = getPrecisionAds(userFingerprint, userProfile, category, count);
+                for (AdMaterial ad : precisionAds) {
+                    if (usedAdIds.add(ad.getId()) && result.size() < count) {
+                        result.add(ad);
+                    }
+                }
+            }
+            
+            // 阶段2：兴趣探索 - 如果数量不足，补充兴趣探索阶段的广告
+            if (result.size() < count && userProfile != null) {
+                List<AdMaterial> explorationAds = getExplorationAds(userProfile, category, count - result.size());
+                for (AdMaterial ad : explorationAds) {
+                    if (usedAdIds.add(ad.getId()) && result.size() < count) {
+                        result.add(ad);
+                    }
+                }
+            }
+            
+            // 阶段3：冷启动 - 如果数量仍然不足，补充冷启动阶段的广告
+            if (result.size() < count) {
+                List<AdMaterial> coldStartAds = getColdStartAds(category, count - result.size());
+                for (AdMaterial ad : coldStartAds) {
+                    if (usedAdIds.add(ad.getId()) && result.size() < count) {
+                        result.add(ad);
+                    }
+                }
+            }
+            
+            // 阶段4：兜底策略 - 如果仍然不足，补充随机广告
+            if (result.size() < count) {
+                List<AdMaterial> randomAds = getRandomAds(count - result.size(), usedAdIds);
+                result.addAll(randomAds);
+            }
         }
         
         return result;
@@ -273,5 +350,230 @@ public class AdRecommendationServiceImpl implements AdRecommendationService {
         
         // 时间衰减函数，越近的行为权重越高
         return Math.exp(-lambda * hoursSinceLastActive);
+    }
+    
+    /**
+     * 根据类型获取精准投放阶段的广告
+     */
+    private List<AdMaterial> getPrecisionAdsByType(String userFingerprint, UserProfile userProfile, String category, String type, int count) {
+        List<AdMaterial> materials;
+        
+        if (category != null && !category.isEmpty()) {
+            materials = adMaterialRepository.findByCategoryAndTypeAndStatusOrderByBidPriceDesc(category, type, 1);
+        } else if (userProfile.getCategories() != null && !userProfile.getCategories().isEmpty()) {
+            // 根据用户画像中的类别推荐
+            String[] categories = userProfile.getCategories().split(",");
+            materials = adMaterialRepository.findByCategoryAndTypeAndStatusOrderByBidPriceDesc(categories[0], type, 1);
+        } else {
+            // 兜底方案
+            materials = adMaterialRepository.findByCategoryAndTypeAndStatusOrderByBidPriceDesc("electronics", type, 1);
+        }
+        
+        // 获取用户行为数据用于计算兴趣权重
+        List<UserBehavior> behaviors = userBehaviorRepository.findByUserFingerprint(userFingerprint);
+        
+        // 计算每个广告的综合得分并排序
+        List<AdMaterial> sortedMaterials = materials.stream()
+            .sorted((a, b) -> {
+                double scoreA = calculatePrecisionScore(a, userProfile, behaviors);
+                double scoreB = calculatePrecisionScore(b, userProfile, behaviors);
+                return Double.compare(scoreB, scoreA); // 降序排列
+            })
+            .collect(Collectors.toList());
+        
+        // 返回指定数量的广告
+        return sortedMaterials.size() > count ? sortedMaterials.subList(0, count) : sortedMaterials;
+    }
+    
+    /**
+     * 根据类型获取兴趣探索阶段的广告
+     */
+    private List<AdMaterial> getExplorationAdsByType(UserProfile userProfile, String category, String type, int count) {
+        List<AdMaterial> materials;
+        
+        if (category != null && !category.isEmpty()) {
+            materials = adMaterialRepository.findByCategoryAndTypeAndStatusOrderByBidPriceDesc(category, type, 1);
+        } else if (userProfile.getCategories() != null && !userProfile.getCategories().isEmpty()) {
+            // 根据用户画像中的类别推荐
+            String[] categories = userProfile.getCategories().split(",");
+            materials = adMaterialRepository.findByCategoryAndTypeAndStatusOrderByBidPriceDesc(categories[0], type, 1);
+        } else {
+            // 兜底方案
+            materials = adMaterialRepository.findByCategoryAndTypeAndStatusOrderByBidPriceDesc("electronics", type, 1);
+        }
+        
+        // 计算类别匹配度并排序
+        String userCategory = userProfile.getCategories() != null ? 
+            userProfile.getCategories().split(",")[0] : "electronics";
+            
+        List<AdMaterial> sortedMaterials = materials.stream()
+            .sorted((a, b) -> {
+                double matchA = a.getCategory().equals(userCategory) ? 1.0 : 0.0;
+                double matchB = b.getCategory().equals(userCategory) ? 1.0 : 0.0;
+                
+                double scoreA = a.getBidPrice().doubleValue() * (1 + matchA * 0.5);
+                double scoreB = b.getBidPrice().doubleValue() * (1 + matchB * 0.5);
+                
+                return Double.compare(scoreB, scoreA); // 降序排列
+            })
+            .collect(Collectors.toList());
+        
+        // 返回指定数量的广告
+        return sortedMaterials.size() > count ? sortedMaterials.subList(0, count) : sortedMaterials;
+    }
+    
+    /**
+     * 根据类型获取冷启动阶段的广告
+     */
+    private List<AdMaterial> getColdStartAdsByType(String category, String type, int count) {
+        List<AdMaterial> materials = new ArrayList<>();
+        
+        if (category != null && !category.isEmpty()) {
+            materials = adMaterialRepository.findByCategoryAndTypeAndStatusOrderByBidPriceDesc(category, type, 1);
+        } else {
+            // 如果没有指定类别，则返回所有启用状态的广告作为兜底
+            materials = adMaterialRepository.findByCategoryAndTypeAndStatusOrderByBidPriceDesc("electronics", type, 1); // 默认使用电子产品类别
+        }
+        
+        // 添加随机因子
+        Random random = new Random();
+        List<AdMaterial> shuffledMaterials = materials.stream()
+            .sorted((a, b) -> {
+                double scoreA = a.getBidPrice().doubleValue() * random.nextDouble();
+                double scoreB = b.getBidPrice().doubleValue() * random.nextDouble();
+                return Double.compare(scoreB, scoreA); // 降序排列
+            })
+            .collect(Collectors.toList());
+        
+        // 返回指定数量的广告
+        return shuffledMaterials.size() > count ? shuffledMaterials.subList(0, count) : shuffledMaterials;
+    }
+    
+    /**
+     * 获取其他类型的精准投放广告
+     */
+    private List<AdMaterial> getPrecisionAdsByOtherTypes(String userFingerprint, UserProfile userProfile, String category, String excludedType, int count) {
+        List<AdMaterial> materials;
+        
+        if (category != null && !category.isEmpty()) {
+            materials = adMaterialRepository.findByCategoryAndStatusExcludingTypeOrderByBidPriceDesc(category, excludedType, 1);
+        } else if (userProfile.getCategories() != null && !userProfile.getCategories().isEmpty()) {
+            // 根据用户画像中的类别推荐
+            String[] categories = userProfile.getCategories().split(",");
+            materials = adMaterialRepository.findByCategoryAndStatusExcludingTypeOrderByBidPriceDesc(categories[0], excludedType, 1);
+        } else {
+            // 兜底方案
+            materials = adMaterialRepository.findByCategoryAndStatusExcludingTypeOrderByBidPriceDesc("electronics", excludedType, 1);
+        }
+        
+        // 获取用户行为数据用于计算兴趣权重
+        List<UserBehavior> behaviors = userBehaviorRepository.findByUserFingerprint(userFingerprint);
+        
+        // 计算每个广告的综合得分并排序
+        List<AdMaterial> sortedMaterials = materials.stream()
+            .sorted((a, b) -> {
+                double scoreA = calculatePrecisionScore(a, userProfile, behaviors);
+                double scoreB = calculatePrecisionScore(b, userProfile, behaviors);
+                return Double.compare(scoreB, scoreA); // 降序排列
+            })
+            .collect(Collectors.toList());
+        
+        // 返回指定数量的广告
+        return sortedMaterials.size() > count ? sortedMaterials.subList(0, count) : sortedMaterials;
+    }
+    
+    /**
+     * 获取其他类型的兴趣探索广告
+     */
+    private List<AdMaterial> getExplorationAdsByOtherTypes(UserProfile userProfile, String category, String excludedType, int count) {
+        List<AdMaterial> materials;
+        
+        if (category != null && !category.isEmpty()) {
+            materials = adMaterialRepository.findByCategoryAndStatusExcludingTypeOrderByBidPriceDesc(category, excludedType, 1);
+        } else if (userProfile.getCategories() != null && !userProfile.getCategories().isEmpty()) {
+            // 根据用户画像中的类别推荐
+            String[] categories = userProfile.getCategories().split(",");
+            materials = adMaterialRepository.findByCategoryAndStatusExcludingTypeOrderByBidPriceDesc(categories[0], excludedType, 1);
+        } else {
+            // 兜底方案
+            materials = adMaterialRepository.findByCategoryAndStatusExcludingTypeOrderByBidPriceDesc("electronics", excludedType, 1);
+        }
+        
+        // 计算类别匹配度并排序
+        String userCategory = userProfile.getCategories() != null ? 
+            userProfile.getCategories().split(",")[0] : "electronics";
+            
+        List<AdMaterial> sortedMaterials = materials.stream()
+            .sorted((a, b) -> {
+                double matchA = a.getCategory().equals(userCategory) ? 1.0 : 0.0;
+                double matchB = b.getCategory().equals(userCategory) ? 1.0 : 0.0;
+                
+                double scoreA = a.getBidPrice().doubleValue() * (1 + matchA * 0.5);
+                double scoreB = b.getBidPrice().doubleValue() * (1 + matchB * 0.5);
+                
+                return Double.compare(scoreB, scoreA); // 降序排列
+            })
+            .collect(Collectors.toList());
+        
+        // 返回指定数量的广告
+        return sortedMaterials.size() > count ? sortedMaterials.subList(0, count) : sortedMaterials;
+    }
+    
+    /**
+     * 获取其他类型的冷启动广告
+     */
+    private List<AdMaterial> getColdStartAdsByOtherTypes(String category, String excludedType, int count) {
+        List<AdMaterial> materials = new ArrayList<>();
+        
+        if (category != null && !category.isEmpty()) {
+            materials = adMaterialRepository.findByCategoryAndStatusExcludingTypeOrderByBidPriceDesc(category, excludedType, 1);
+        } else {
+            // 如果没有指定类别，则返回所有启用状态的广告作为兜底
+            materials = adMaterialRepository.findByCategoryAndStatusExcludingTypeOrderByBidPriceDesc("electronics", excludedType, 1); // 默认使用电子产品类别
+        }
+        
+        // 添加随机因子
+        Random random = new Random();
+        List<AdMaterial> shuffledMaterials = materials.stream()
+            .sorted((a, b) -> {
+                double scoreA = a.getBidPrice().doubleValue() * random.nextDouble();
+                double scoreB = b.getBidPrice().doubleValue() * random.nextDouble();
+                return Double.compare(scoreB, scoreA); // 降序排列
+            })
+            .collect(Collectors.toList());
+        
+        // 返回指定数量的广告
+        return shuffledMaterials.size() > count ? shuffledMaterials.subList(0, count) : shuffledMaterials;
+    }
+    
+    /**
+     * 获取其他类型的随机广告作为兜底
+     */
+    private List<AdMaterial> getRandomAdsByOtherTypes(int count, Set<Long> excludeIds, String excludedType) {
+        // 获取所有启用的广告，排除已使用的和指定类型
+        List<AdMaterial> allAds = adMaterialRepository.findByStatusExcludingType(1, excludedType);
+        
+        // 过滤掉已使用的广告
+        List<AdMaterial> availableAds = allAds.stream()
+            .filter(ad -> !excludeIds.contains(ad.getId()))
+            .collect(Collectors.toList());
+        
+        // 随机打乱并返回指定数量
+        if (availableAds.size() <= count) {
+            return availableAds;
+        }
+        
+        // 使用随机采样获取指定数量的广告
+        Random random = new Random();
+        List<AdMaterial> result = new ArrayList<>();
+        for (int i = 0; i < count && i < availableAds.size(); i++) {
+            int randomIndex = random.nextInt(availableAds.size() - i) + i;
+            AdMaterial temp = availableAds.get(randomIndex);
+            availableAds.set(randomIndex, availableAds.get(i));
+            availableAds.set(i, temp);
+            result.add(temp);
+        }
+        
+        return result;
     }
 }

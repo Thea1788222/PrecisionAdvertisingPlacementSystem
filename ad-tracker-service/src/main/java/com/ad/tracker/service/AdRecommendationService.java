@@ -23,6 +23,6 @@ public interface AdRecommendationService {
      * @return 推荐广告列表
      */
     public List<AdMaterial> getRecommendedAds(String userFingerprint, String website,
-                                              List<String> positions, String category, int count);
+                                              List<String> positions, String category, String type, int count);
 
 }

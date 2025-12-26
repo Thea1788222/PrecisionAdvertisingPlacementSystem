@@ -235,8 +235,9 @@ function getRecommendedAds() {
     try {
         adTracker.getRecommendedAds({
             positions: ['top-banner', 'sidebar', 'right-rail-1', 'right-rail-2', 'bottom-banner', 'feed'],
-            category: 'shopping',
-            count: 6
+            category: '',
+            type: 'native',
+            count: 5
         }).then(ads => {
             stats.recommendedAdCount += ads.length;
             updateStats();
