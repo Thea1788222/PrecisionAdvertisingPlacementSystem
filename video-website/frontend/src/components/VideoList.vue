@@ -5,12 +5,8 @@
     <div v-if="loading">加载中...</div>
 
     <div v-else>
-      <div
-        v-for="video in videos"
-        :key="video.id"
-        style="margin-bottom: 10px;"
-      >
-        <img :src="video.thumbnailUrl" style="width: 120px;" />
+      <div v-for="video in videos" :key="video.id" style="margin-bottom: 10px">
+        <img :src="video.thumbnailUrl" style="width: 120px" />
         <div>{{ video.title }}</div>
       </div>
     </div>
@@ -18,25 +14,25 @@
 </template>
 
 <script>
-import axios from "axios";
+import axios from 'axios'
 
 export default {
-  name: "VideoList",
+  name: 'VideoList',
   data() {
     return {
       videos: [],
       loading: true,
-    };
+    }
   },
   mounted() {
     axios
-      .get("http://localhost:8082/api/videos")
+      .get('http://localhost:8082/api/videos')
       .then((res) => {
-        this.videos = res.data;
+        this.videos = res.data
       })
       .finally(() => {
-        this.loading = false;
-      });
+        this.loading = false
+      })
   },
-};
+}
 </script>

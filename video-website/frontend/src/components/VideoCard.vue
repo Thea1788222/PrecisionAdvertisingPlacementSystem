@@ -1,6 +1,6 @@
 <template>
   <div class="video-card" @click="$emit('click')">
-    <img :src="video.coverUrl" alt="封面" width="200" height="120"/>
+    <img :src="video.coverUrl" alt="封面" width="200" height="120" />
     <h3>{{ video.title }}</h3>
     <p>{{ video.description }}</p>
   </div>
@@ -8,7 +8,7 @@
 
 <script setup>
 defineProps({
-  video: Object
+  video: Object,
 })
 </script>
 

@@ -4,12 +4,12 @@ import VideoPlayer from '@/views/VideoPlayer.vue'
 
 const routes = [
   { path: '/', component: VideoList },
-  { path: '/video/:id', component: VideoPlayer }
+  { path: '/video/:id', component: VideoPlayer },
 ]
 
 const router = createRouter({
   history: createWebHistory(),
-  routes
+  routes,
 })
 
 export default router
