@@ -1,7 +1,7 @@
 package com.ad.tracker.controller;
 
 import com.ad.tracker.model.AdMaterial;
-import com.ad.tracker.service.AdRecommendationService;
+import com.ad.tracker.service.impl.AdRecommendationServiceImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +26,7 @@ public class AdRecommendationControllerTest {
     private MockMvc mockMvc;
 
     @MockBean
-    private AdRecommendationService adRecommendationService;
+    private AdRecommendationServiceImpl adRecommendationService;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -34,7 +34,7 @@ public class AdRecommendationControllerTest {
     @Test
     void testGetRecommendedAds() throws Exception {
         Map<String, Object> request = new HashMap<>();
-        request.put("cookieId", "test-cookie-id");
+        request.put("userFingerprint", "test-fingerprint");
         request.put("website", "test-website");
         request.put("positions", Arrays.asList("top-banner", "sidebar"));
         request.put("category", "test");

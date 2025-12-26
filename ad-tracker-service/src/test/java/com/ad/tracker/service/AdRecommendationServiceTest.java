@@ -3,6 +3,8 @@ package com.ad.tracker.service;
 import com.ad.tracker.model.AdMaterial;
 import com.ad.tracker.model.UserProfile;
 import com.ad.tracker.repository.AdMaterialRepository;
+import com.ad.tracker.service.impl.AdRecommendationServiceImpl;
+import com.ad.tracker.service.impl.UserProfileServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -12,7 +14,6 @@ import org.springframework.test.context.ActiveProfiles;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import static org.mockito.Mockito.*;
 
@@ -21,20 +22,19 @@ import static org.mockito.Mockito.*;
 public class AdRecommendationServiceTest {
 
     @Autowired
-    private AdRecommendationService adRecommendationService;
+    private AdRecommendationServiceImpl adRecommendationService;
 
     @MockBean
     private AdMaterialRepository adMaterialRepository;
     
     @MockBean
-    private UserProfileService userProfileService;
+    private UserProfileServiceImpl userProfileService;
 
     @Test
     void testGetRecommendedAds() {
         // 准备测试数据
         UserProfile profile = new UserProfile();
         profile.setId(1L);
-        profile.setCookieId("test-cookie-id");
         profile.setUserFingerprint("test-fingerprint");
         profile.setInterests("test,interests");
         profile.setCategories("test,categories");
@@ -56,19 +56,19 @@ public class AdRecommendationServiceTest {
         materials.add(material);
         
         // 设置mock行为
-        when(userProfileService.getUserProfileByCookieId("test-cookie-id")).thenReturn(profile);
+        when(userProfileService.getUserProfileByFingerprint("test-fingerprint")).thenReturn(profile);
         when(adMaterialRepository.findByCategoryAndStatusOrderByBidPriceDesc("test", 1)).thenReturn(materials);
         
         // 调用被测试方法
         List<AdMaterial> result = adRecommendationService.getRecommendedAds(
-            "test-cookie-id", "test-website", List.of("top-banner"), "test", 5);
+            "test-fingerprint", "test-website", List.of("top-banner"), "test", 5);
         
         // 验证结果
         assert result.size() == 1;
         assert result.get(0).getId().equals(1L);
         assert result.get(0).getTitle().equals("Test Ad");
         
-        verify(userProfileService, times(1)).getUserProfileByCookieId("test-cookie-id");
+        verify(userProfileService, times(1)).getUserProfileByFingerprint("test-fingerprint");
         verify(adMaterialRepository, times(1)).findByCategoryAndStatusOrderByBidPriceDesc("test", 1);
     }
 }

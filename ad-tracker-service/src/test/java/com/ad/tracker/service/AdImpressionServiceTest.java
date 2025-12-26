@@ -2,6 +2,7 @@ package com.ad.tracker.service;
 
 import com.ad.tracker.model.AdImpression;
 import com.ad.tracker.repository.AdImpressionRepository;
+import com.ad.tracker.service.impl.AdImpressionServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -18,7 +19,7 @@ import static org.mockito.Mockito.*;
 public class AdImpressionServiceTest {
 
     @Autowired
-    private AdImpressionService adImpressionService;
+    private AdImpressionServiceImpl adImpressionService;
 
     @MockBean
     private AdImpressionRepository adImpressionRepository;
@@ -28,7 +29,7 @@ public class AdImpressionServiceTest {
         AdImpression impression = new AdImpression();
         impression.setId(1L);
         impression.setAdId(100L);
-        impression.setCookieId("test-cookie-id");
+        impression.setUserFingerprint("test-fingerprint");
         impression.setWebsite("test-website");
         impression.setPosition("top-banner");
         impression.setBidPrice(new BigDecimal("1.50"));
@@ -37,7 +38,7 @@ public class AdImpressionServiceTest {
         when(adImpressionRepository.save(any(AdImpression.class))).thenReturn(impression);
         
         AdImpression result = adImpressionService.saveAdImpression(
-            100L, "test-cookie-id", "test-website", "top-banner", new BigDecimal("1.50"));
+            100L, "test-fingerprint", "test-website", "top-banner", new BigDecimal("1.50"));
         
         verify(adImpressionRepository, times(1)).save(any(AdImpression.class));
     }
@@ -47,7 +48,7 @@ public class AdImpressionServiceTest {
         AdImpression impression = new AdImpression();
         impression.setId(1L);
         impression.setAdId(100L);
-        impression.setCookieId("test-cookie-id");
+        impression.setUserFingerprint("test-fingerprint");
         impression.setWebsite("test-website");
         impression.setPosition("top-banner");
         impression.setBidPrice(new BigDecimal("1.50"));

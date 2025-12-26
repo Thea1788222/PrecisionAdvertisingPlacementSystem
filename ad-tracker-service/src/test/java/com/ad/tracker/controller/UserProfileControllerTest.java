@@ -1,7 +1,7 @@
 package com.ad.tracker.controller;
 
 import com.ad.tracker.model.UserProfile;
-import com.ad.tracker.service.UserProfileService;
+import com.ad.tracker.service.impl.UserProfileServiceImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,8 +10,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-
-import java.time.LocalDateTime;
 
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -25,7 +23,7 @@ public class UserProfileControllerTest {
     private MockMvc mockMvc;
 
     @MockBean
-    private UserProfileService userProfileService;
+    private UserProfileServiceImpl userProfileService;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -34,26 +32,24 @@ public class UserProfileControllerTest {
     void testGetUserProfile() throws Exception {
         UserProfile profile = new UserProfile();
         profile.setId(1L);
-        profile.setCookieId("test-cookie-id");
         profile.setUserFingerprint("test-fingerprint");
         profile.setInterests("test,interests");
         profile.setCategories("test,categories");
         profile.setBehaviorScore(80);
 
-        when(userProfileService.getUserProfileByCookieId("test-cookie-id")).thenReturn(profile);
+        when(userProfileService.getUserProfileByFingerprint("test-fingerprint")).thenReturn(profile);
 
-        mockMvc.perform(get("/api/user/profile/test-cookie-id"))
+        mockMvc.perform(get("/api/user/profile/test-fingerprint"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
-                .andExpect(jsonPath("$.cookieId").value("test-cookie-id"));
+                .andExpect(jsonPath("$.userFingerprint").value("test-fingerprint"));
 
-        verify(userProfileService, times(1)).getUserProfileByCookieId("test-cookie-id");
+        verify(userProfileService, times(1)).getUserProfileByFingerprint("test-fingerprint");
     }
 
     @Test
     void testUpdateUserProfile() throws Exception {
         UserProfile profile = new UserProfile();
-        profile.setCookieId("test-cookie-id");
         profile.setUserFingerprint("test-fingerprint");
         profile.setInterests("test,interests");
         profile.setCategories("test,categories");

@@ -2,13 +2,12 @@ package com.ad.tracker.service;
 
 import com.ad.tracker.model.UserBehavior;
 import com.ad.tracker.repository.UserBehaviorRepository;
+import com.ad.tracker.service.impl.UserBehaviorServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
-
-import java.time.LocalDateTime;
 
 import static org.mockito.Mockito.*;
 
@@ -17,7 +16,7 @@ import static org.mockito.Mockito.*;
 public class UserBehaviorServiceTest {
 
     @Autowired
-    private UserBehaviorService userBehaviorService;
+    private UserBehaviorServiceImpl userBehaviorService;
 
     @MockBean
     private UserBehaviorRepository userBehaviorRepository;
@@ -26,7 +25,6 @@ public class UserBehaviorServiceTest {
     void testSaveUserBehavior() {
         UserBehavior userBehavior = new UserBehavior();
         userBehavior.setUserFingerprint("test-fingerprint");
-        userBehavior.setCookieId("test-cookie-id");
         userBehavior.setWebsite("test-website");
         userBehavior.setActionType("page_view");
         userBehavior.setTargetId("test-target-id");

@@ -2,10 +2,9 @@ package com.ad.tracker.controller;
 
 import com.ad.tracker.model.UserBehavior;
 import com.ad.tracker.model.AdImpression;
-import com.ad.tracker.service.UserBehaviorService;
-import com.ad.tracker.service.AdImpressionService;
-import com.ad.tracker.service.AdRecommendationService;
-import com.ad.tracker.model.AdMaterial;
+import com.ad.tracker.service.impl.AdImpressionServiceImpl;
+import com.ad.tracker.service.impl.UserBehaviorServiceImpl;
+import com.ad.tracker.service.impl.AdRecommendationServiceImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,13 +29,13 @@ public class TrackControllerTest {
     private MockMvc mockMvc;
 
     @MockBean
-    private UserBehaviorService userBehaviorService;
+    private UserBehaviorServiceImpl userBehaviorService;
 
     @MockBean
-    private AdImpressionService adImpressionService;
+    private AdImpressionServiceImpl adImpressionService;
 
     @MockBean
-    private AdRecommendationService adRecommendationService;
+    private AdRecommendationServiceImpl adRecommendationService;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -45,7 +44,6 @@ public class TrackControllerTest {
     void testTrackBehavior() throws Exception {
         UserBehavior userBehavior = new UserBehavior();
         userBehavior.setUserFingerprint("test-fingerprint");
-        userBehavior.setCookieId("test-cookie-id");
         userBehavior.setWebsite("test-website");
         userBehavior.setActionType("page_view");
         userBehavior.setTargetId("test-target-id");
@@ -67,7 +65,7 @@ public class TrackControllerTest {
     void testTrackImpression() throws Exception {
         Map<String, Object> request = new HashMap<>();
         request.put("adId", 100);
-        request.put("cookieId", "test-cookie-id");
+        request.put("userFingerprint", "test-fingerprint");
         request.put("website", "test-website");
         request.put("position", "top-banner");
         request.put("bidPrice", "1.50");
@@ -75,7 +73,7 @@ public class TrackControllerTest {
         AdImpression impression = new AdImpression();
         impression.setId(1L);
         impression.setAdId(100L);
-        impression.setCookieId("test-cookie-id");
+        impression.setUserFingerprint("test-fingerprint");
         impression.setWebsite("test-website");
         impression.setPosition("top-banner");
         impression.setBidPrice(new BigDecimal("1.50"));
@@ -99,6 +97,7 @@ public class TrackControllerTest {
     void testTrackClick() throws Exception {
         Map<String, Object> request = new HashMap<>();
         request.put("impressionId", 1);
+        request.put("userFingerprint", "test-fingerprint");
 
         mockMvc.perform(post("/api/track/click")
                 .contentType(MediaType.APPLICATION_JSON)
