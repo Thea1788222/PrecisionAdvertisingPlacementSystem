@@ -1,6 +1,7 @@
 package com.ad.tracker.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -18,6 +19,10 @@ public class RedisConfig {
 
         // 使用Jackson2JsonRedisSerializer来序列化和反序列化redis的value值
         ObjectMapper objectMapper = new ObjectMapper();
+        // 注册JavaTimeModule以支持Java 8日期时间类型
+        objectMapper.registerModule(new JavaTimeModule());
+        // 启用DEFAULT_TYPING以支持类型信息的序列化
+        objectMapper.activateDefaultTyping(objectMapper.getPolymorphicTypeValidator(), ObjectMapper.DefaultTyping.NON_FINAL);
         Jackson2JsonRedisSerializer<Object> jackson2JsonRedisSerializer = new Jackson2JsonRedisSerializer<>(objectMapper, Object.class);
 
         // 使用StringRedisSerializer来序列化和反序列化redis的key值

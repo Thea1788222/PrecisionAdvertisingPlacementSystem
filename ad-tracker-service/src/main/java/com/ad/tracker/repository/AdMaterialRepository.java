@@ -30,4 +30,10 @@ public interface AdMaterialRepository extends JpaRepository<AdMaterial, Long> {
      */
     @Query("SELECT am FROM AdMaterial am WHERE am.status = :status AND am.type != :excludedType")
     List<AdMaterial> findByStatusExcludingType(@Param("status") Integer status, @Param("excludedType") String excludedType);
+    
+    /**
+     * 根据状态和类型查询广告素材
+     */
+    @Query("SELECT am FROM AdMaterial am WHERE am.status = :status AND am.type = :type")
+    List<AdMaterial> findByStatusAndType(@Param("status") Integer status, @Param("type") String type);
 }
