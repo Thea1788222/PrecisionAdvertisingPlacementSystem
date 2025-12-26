@@ -8,7 +8,7 @@ spring:
     name: video-website
   
   datasource:
-    url: jdbc:mysql://localhost:3306/advertising_system?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
+    url: jdbc:mysql://localhost:3306/video_website?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
     username: root
     password: 123456
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -47,3 +47,10 @@ logging:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n"
   file:
     name: logs/video-website.log
+
+# =========================
+# 视频文件相关配置
+# =========================
+video:
+  storage-path: D:/videos                # 本地开发视频存放目录（物理路径）
+  public-url-prefix: http://localhost:8082/videos/  # 前端访问 URL 前缀
