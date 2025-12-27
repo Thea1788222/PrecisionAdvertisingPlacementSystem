@@ -69,7 +69,8 @@ public class UserBehaviorServiceImpl implements UserBehaviorService {
     /**
      * 定时批量处理用户行为数据，更新用户画像
      */
-    @Scheduled(fixedRate = 60000) // 每60秒执行一次
+    @Scheduled(cron = "0 * * * * ?") // 每分钟执行一次
+//    @Scheduled(cron = "0 */5 * * * ?") // 每五分钟执行一次
     @Transactional
     public void batchUpdateUserProfiles() {
         logger.info("开始执行批量更新用户画像任务");
@@ -94,10 +95,12 @@ public class UserBehaviorServiceImpl implements UserBehaviorService {
             Object behaviorObj = listOps.leftPop(USER_BEHAVIOR_QUEUE);
             logger.debug("从Redis队列取出对象类型: {}", behaviorObj != null ? behaviorObj.getClass().getName() : "null");
             logger.debug("从Redis队列取出对象内容: {}", behaviorObj);
+
             if (behaviorObj instanceof UserBehavior) {
                 UserBehavior behavior = (UserBehavior) behaviorObj;
-                logger.debug("成功转换为UserBehavior: 用户指纹={}, 行为类型={}, 分类={}", 
+                logger.debug("成功转换为UserBehavior: 用户指纹={}, 行为类型={}, 分类={}",
                            behavior.getUserFingerprint(), behavior.getActionType(), behavior.getCategory());
+
                 batchBehaviors.add(behavior);
             } else {
                 logger.warn("对象无法转换为UserBehavior类型，实际类型: {}", 

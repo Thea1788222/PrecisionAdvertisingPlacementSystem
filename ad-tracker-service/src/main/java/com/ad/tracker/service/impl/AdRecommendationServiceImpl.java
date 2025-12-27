@@ -40,7 +40,7 @@ public class AdRecommendationServiceImpl implements AdRecommendationService {
     public List<AdMaterial> getRecommendedAds(String userFingerprint, String website, 
                                             List<String> positions, String category, String type, int count) {
 
-        List<AdMaterial> result = new ArrayList<>();
+        List<AdMaterial> result = new ArrayList<>(); // 结果列表
         Set<Long> usedAdIds = new HashSet<>(); // 用于去重
         
         // 如果请求的数量为0或负数，返回空列表
@@ -73,7 +73,7 @@ public class AdRecommendationServiceImpl implements AdRecommendationService {
     private List<AdMaterial> getRecommendationsForHighBehaviorScore(String userFingerprint, UserProfile userProfile, 
                                                                  String type, int count, Set<Long> usedAdIds) {
         List<AdMaterial> result = new ArrayList<>();
-        
+
         // 计算按权重推荐的数量（80%）
         int weightBasedCount = (int) (count * 0.8);
         
@@ -81,7 +81,7 @@ public class AdRecommendationServiceImpl implements AdRecommendationService {
         List<AdMaterial> weightBasedAds = getPrecisionRecommendations(userFingerprint, userProfile, type, weightBasedCount, usedAdIds);
         result.addAll(weightBasedAds);
         
-        // 剩余的20%随机补充
+        // 剩余的20%补充随机广告
         int remainingCount = count - result.size();
         if (remainingCount > 0) {
             List<AdMaterial> randomAds = getRandomRecommendations(remainingCount, usedAdIds, type);
@@ -101,7 +101,6 @@ public class AdRecommendationServiceImpl implements AdRecommendationService {
         // 计算各部分推荐数量
         int topWeightCount = (int) (count * 0.3);      // 权重最高30%
         int bottomWeightCount = (int) (count * 0.2);   // 权重最低20%
-        int randomCount = count - topWeightCount - bottomWeightCount; // 随机50%
         
         // 获取用户兴趣权重
         Map<String, Double> interests = userProfileService.parseInterests(userProfile);
@@ -116,7 +115,7 @@ public class AdRecommendationServiceImpl implements AdRecommendationService {
         List<AdMaterial> bottomWeightAds = getExplorationRecommendationsForLowest(interests, type, currentBottomCount, usedAdIds);
         result.addAll(bottomWeightAds);
         
-        // 随机补充
+        // 剩余的50%补充随机广告
         remainingCount = count - result.size();
         if (remainingCount > 0) {
             List<AdMaterial> randomAds = getRandomRecommendations(remainingCount, usedAdIds, type);
@@ -146,6 +145,7 @@ public class AdRecommendationServiceImpl implements AdRecommendationService {
         for (String category : interests.keySet()) {
             List<AdMaterial> categoryAds;
             if (type != null && !type.isEmpty()) {
+                // 按指定类型和分类获取启用的广告
                 categoryAds = adMaterialRepository.findByCategoryAndTypeAndStatusOrderByBidPriceDesc(category, type, 1);
             } else {
                 categoryAds = adMaterialRepository.findByCategoryAndStatusOrderByBidPriceDesc(category, 1);
@@ -164,7 +164,7 @@ public class AdRecommendationServiceImpl implements AdRecommendationService {
                 double scoreB = calculatePrecisionScore(b, userProfile, behaviors);
                 return Double.compare(scoreB, scoreA); // 降序排列
             })
-            .collect(Collectors.toList());
+            .toList();
         
         // 返回指定数量的广告
         List<AdMaterial> selectedAds = sortedMaterials.size() > count ? 
