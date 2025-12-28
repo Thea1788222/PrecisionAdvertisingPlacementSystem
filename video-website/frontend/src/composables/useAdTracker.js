@@ -30,7 +30,7 @@ function initAdTracker() {
   try {
     if (window.adTracker) {
       window.adTracker.init({
-        trackerServer: 'http://localhost:8084',
+        trackerServer: 'http://track.video.com:8084',
         website: 'video-website'
       })
       addDebugInfo('广告追踪SDK初始化成功')

@@ -122,7 +122,7 @@ onMounted(async () => {
   
   // 加载视频数据
   try {
-    const res = await axios.get('http://localhost:8082/api/videos')
+    const res = await axios.get('http://track.video.com:8082/api/videos')
     videos.value = res.data
     addDebugInfo(`加载视频成功: ${res.data.length}个视频`)
   } catch (error) {
