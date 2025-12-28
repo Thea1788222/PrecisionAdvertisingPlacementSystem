@@ -99,3 +99,9 @@ logs/
 # IDE
 *.swp
 *.swo
+
+# Sensitive configuration files
+**/application-dev.yml
+**/application-prod.yml
+**/application-test.yml
+**/application-local.yml

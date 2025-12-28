@@ -25,7 +25,7 @@
             <option value="">全部类型</option>
             <option value="banner">图片</option>
             <option value="video">视频</option>
-            <option value="native">原生</option>
+            <option value="native">原生(图片)</option>
           </select>
         </div>
         <div class="form-group">
@@ -37,6 +37,11 @@
             <option value="sports">运动</option>
             <option value="home">家居</option>
             <option value="food">美食</option>
+            <option value="travel">旅游</option>
+            <option value="education">教育</option>
+            <option value="finance">金融</option>
+            <option value="health">健康</option>
+            <option value="beauty">美妆</option>
           </select>
         </div>
         <div class="form-group">
@@ -73,7 +78,7 @@
         @click="viewMaterialDetail(material)"
       >
         <div class="card-preview">
-          <div v-if="material.type === 'banner' && material.imageUrl" class="image-preview">
+          <div v-if="(material.type === 'banner' || material.type === 'native') && material.imageUrl" class="image-preview">
             <img :src="material.imageUrl" :alt="material.title" />
           </div>
           <div v-else-if="material.type === 'video' && material.videoUrl" class="video-preview">
@@ -390,7 +395,7 @@ const openCreateModal = () => {
 const editMaterial = (material) => {
   currentMaterial.value = { ...material }
   // 根据素材类型设置预览
-  if (material.type === 'banner' && material.imageUrl) {
+  if ((material.type === 'banner' || material.type === 'native') && material.imageUrl) {
     currentFilePreview.value = material.imageUrl
     currentFileType.value = 'image'
     hasFile.value = true
@@ -484,7 +489,10 @@ const saveMaterial = async () => {
           // 设置文件URL
           if (currentFileType.value === 'image') {
             currentMaterial.value.imageUrl = uploadResponse.data.url
-            currentMaterial.value.type = 'banner'
+            // 保持现有类型，如果当前类型是native则继续使用native，否则设为banner
+            if (currentMaterial.value.type !== 'native') {
+              currentMaterial.value.type = 'banner'
+            }
           } else if (currentFileType.value === 'video') {
             currentMaterial.value.videoUrl = uploadResponse.data.url
             currentMaterial.value.type = 'video'
@@ -622,7 +630,12 @@ const getCategoryText = (category) => {
     fashion: '时尚',
     sports: '运动',
     home: '家居',
-    food: '美食'
+    food: '美食',
+    travel: '旅游',
+    education: '教育',
+    finance: '金融',
+    health: '健康',
+    beauty: '美妆'
   }
   return categories[category] || category
 }

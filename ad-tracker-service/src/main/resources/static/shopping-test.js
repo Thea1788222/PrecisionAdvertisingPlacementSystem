@@ -51,7 +51,19 @@ const products = [
     { id: 9, name: '沙发', price: 2999, category: 'home', rating: 5, emoji: '🛋️', description: '真皮沙发，舒适耐用，提升客厅品味' },
     { id: 10, name: '餐具套装', price: 399, category: 'home', rating: 4, emoji: '🍽️', description: '不锈钢餐具套装，精美实用，适合家庭使用' },
     { id: 11, name: '编程书籍', price: 89, category: 'education', rating: 5, emoji: '📚', description: '深入浅出的编程指南，适合初学者' },
-    { id: 12, name: '英语词典', price: 129, category: 'education', rating: 4, emoji: '📖', description: '权威英语词典，词汇量丰富，查询便捷' }
+    { id: 12, name: '英语词典', price: 129, category: 'education', rating: 4, emoji: '📖', description: '权威英语词典，词汇量丰富，查询便捷' },
+    { id: 13, name: '旅行背包', price: 399, category: 'travel', rating: 5, emoji: '🎒', description: '大容量旅行背包，防水材质，适合长途旅行' },
+    { id: 14, name: '旅行箱', price: 899, category: 'travel', rating: 4, emoji: '🧳', description: '轻便耐用旅行箱，360度旋转轮子，出行首选' },
+    { id: 15, name: '理财产品', price: 100, category: 'finance', rating: 4, emoji: '📈', description: '稳健型理财产品，年化收益率4.5%，低风险投资' },
+    { id: 16, name: '保险套餐', price: 2999, category: 'finance', rating: 5, emoji: '🛡️', description: '全方位保障套餐，覆盖意外、医疗、财产安全' },
+    { id: 17, name: '维生素C', price: 89, category: 'health', rating: 4, emoji: '💊', description: '高浓度维C补充剂，增强免疫力，抗氧化' },
+    { id: 18, name: '按摩椅', price: 5999, category: 'health', rating: 5, emoji: '🪑', description: '家用智能按摩椅，全身按摩，舒缓疲劳' },
+    { id: 19, name: '护肤套装', price: 599, category: 'beauty', rating: 5, emoji: '🧴', description: '全套护肤产品，深层清洁，滋润保湿' },
+    { id: 20, name: '口红', price: 299, category: 'beauty', rating: 4, emoji: '💄', description: '持久显色口红，多种色号可选，打造完美妆容' },
+    { id: 21, name: '智能手表', price: 2999, category: 'electronics', rating: 5, emoji: '⌚', description: '多功能智能手表，心率监测，运动追踪' },
+    { id: 22, name: '无线耳机', price: 1299, category: 'electronics', rating: 4, emoji: '🎧', description: '降噪无线耳机，高音质享受，便携设计' },
+    { id: 23, name: '连衣裙', price: 599, category: 'fashion', rating: 4, emoji: '👗', description: '优雅连衣裙，适合各种场合，彰显女性魅力' },
+    { id: 24, name: '太阳镜', price: 799, category: 'fashion', rating: 5, emoji: '🕶️', description: '时尚太阳镜，UV防护，潮流必备单品' }
 ];
 
 // 渲染商品
@@ -235,8 +247,9 @@ function getRecommendedAds() {
     try {
         adTracker.getRecommendedAds({
             positions: ['top-banner', 'sidebar', 'right-rail-1', 'right-rail-2', 'bottom-banner', 'feed'],
-            category: 'shopping',
-            count: 6
+            category: '',
+            type: 'native',
+            count: 5
         }).then(ads => {
             stats.recommendedAdCount += ads.length;
             updateStats();

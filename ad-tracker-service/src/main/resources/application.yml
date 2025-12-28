@@ -6,11 +6,13 @@ server:
 spring:
   application:
     name: ad-tracker-service
+  profiles:
+    active: dev
 
   datasource:
-    url: jdbc:mysql://10.100.164.35:3306/advertising_system?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
-    username: remote
-    password: StrongPassword123!
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:advertising_system}?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:password}
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
       minimum-idle: 5
@@ -35,6 +37,21 @@ spring:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: Asia/Shanghai
     default-property-inclusion: non_null
+
+  # Redis configuration
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:} # 如果Redis有密码，在此设置
+      timeout: 10000ms
+      database: ${REDIS_DATABASE:0}
+      lettuce:
+        pool:
+          max-active: ${REDIS_POOL_MAX_ACTIVE:20}
+          max-idle: ${REDIS_POOL_MAX_IDLE:10}
+          min-idle: ${REDIS_POOL_MIN_IDLE:5}
+          max-wait: 1000ms
 
 # Logging configuration
 logging:
