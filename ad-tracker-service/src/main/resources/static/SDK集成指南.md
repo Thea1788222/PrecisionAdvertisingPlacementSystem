@@ -18,10 +18,9 @@ SDK文件位于广告追踪服务的静态资源目录中：
 ```
 本地测试：http://localhost:8084/ad-tracker.js，本地测试时需要运行广告追踪服务
 
-线上环境：http://10.100.164.35:8084/ad-tracker.js，目前未部署
+线上环境：http://10.100.164.35:8084/ad-tracker.js，目前已部署，可以接入
 ```
 
-或者将文件直接下载到您的项目中。
 
 ### 2.2 基本集成步骤
 
@@ -36,7 +35,7 @@ SDK文件位于广告追踪服务的静态资源目录中：
 在网页的`<head>`标签或`</body>`标签之前添加以下代码：
 
 ```html
-<script src="http://localhost:8084/ad-tracker.js"></script>
+<script src="http://10.100.164.35:8084/ad-tracker.js"></script>
 ```
 
 
@@ -46,8 +45,8 @@ SDK文件位于广告追踪服务的静态资源目录中：
 
 ```javascript
 adTracker.init({
-  trackerServer: 'http://localhost:8084',  // 追踪服务地址（必需）
-  website: 'your-website-name'            // 网站类别，如：shop、video、news（必需）
+  trackerServer: 'http://10.100.164.35:8084',  // 追踪服务地址（必需）
+  website: 'shop'            // 网站类别，如：shop、video、news（必需）
 });
 ```
 
@@ -173,9 +172,9 @@ adTracker.trackBehavior('view', {   // 行为类型，'view', 'click', 'search'
   - `type`: 广告类型，video、native
   - `imageUrl`: 图片URL（用于显示图片）
   - `videoUrl`: 视频URL（用于播放视频）
-  - `linkUrl`: 广告链接URL（暂时无用）
-  - `width`: 广告图片宽度
-  - `height`: 广告图片高度
+  - `linkUrl`: 广告链接URL（无用）
+  - `width`: 广告图片宽度（无用）
+  - `height`: 广告图片高度（无用）
   - `duration`: 视频时长，单位秒
   - `category`: 广告类别标签（用于用户行为追踪）
   - `targetInterest`: 广告目标兴趣标签
