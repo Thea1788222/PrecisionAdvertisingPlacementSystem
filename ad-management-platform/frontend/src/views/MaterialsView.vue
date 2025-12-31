@@ -54,9 +54,9 @@
         </div>
         <div class="form-group">
           <label>关键词</label>
-          <input 
-            v-model="filters.keyword" 
-            type="text" 
+          <input
+            v-model="filters.keyword"
+            type="text"
             placeholder="请输入关键词"
             @keyup.enter="handleSearch"
           />
@@ -71,9 +71,9 @@
 
     <!-- 素材卡片列表 -->
     <div class="materials-grid" v-loading="loading">
-      <div 
-        class="material-card" 
-        v-for="material in materials" 
+      <div
+        class="material-card"
+        v-for="material in materials"
         :key="material.id"
         @click="viewMaterialDetail(material)"
       >
@@ -109,7 +109,7 @@
           </div>
         </div>
       </div>
-      
+
       <div v-if="materials.length === 0 && !loading" class="empty-state">
         <p>暂无广告素材</p>
         <button class="btn btn-primary" @click="openCreateModal">新建素材</button>
@@ -149,19 +149,19 @@
             <!-- 文件上传区域 -->
             <div class="form-group">
               <label>素材文件 *</label>
-              <div 
-                class="upload-area" 
+              <div
+                class="upload-area"
                 :class="{ 'drag-over': isDragOver, 'has-file': hasFile }"
                 @dragover.prevent="handleDragOver"
                 @dragleave.prevent="handleDragLeave"
                 @drop.prevent="handleDrop"
                 @click="triggerFileInput"
               >
-                <input 
-                  ref="fileInput" 
-                  type="file" 
-                  accept="image/*,video/*" 
-                  @change="handleFileChange" 
+                <input
+                  ref="fileInput"
+                  type="file"
+                  accept="image/*,video/*"
+                  @change="handleFileChange"
                   class="file-input"
                 />
                 <div v-if="!hasFile" class="upload-placeholder">
@@ -201,7 +201,7 @@
                 placeholder="请输入广告标题"
               />
             </div>
-            
+
             <div class="form-row">
               <div class="form-group">
                 <label>广告商 *</label>
@@ -212,7 +212,7 @@
                   </option>
                 </select>
               </div>
-              
+
               <div class="form-group">
                 <label>分类 *</label>
                 <select v-model="currentMaterial.category" required>
@@ -222,10 +222,15 @@
                   <option value="sports">运动</option>
                   <option value="home">家居</option>
                   <option value="food">美食</option>
+                  <option value="travel">旅游</option>
+                  <option value="education">教育</option>
+                  <option value="finance">金融</option>
+                  <option value="health">健康</option>
+                  <option value="beauty">美妆</option>
                 </select>
               </div>
             </div>
-            
+
             <div class="form-row">
               <div class="form-group">
                 <label>出价 (元) *</label>
@@ -245,7 +250,7 @@
                 </select>
               </div>
             </div>
-            
+
             <div class="form-group">
               <label>链接地址</label>
               <input
@@ -254,13 +259,13 @@
                 placeholder="https://example.com"
               />
             </div>
-            
+
             <div class="form-actions">
               <button type="button" class="btn btn-secondary" @click="closeModal">
                 取消
               </button>
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 class="btn btn-primary"
                 :disabled="isUploading"
               >
@@ -342,7 +347,7 @@ const loadMaterials = async () => {
         keyword: filters.value.keyword || null
       }
     })
-    
+
     materials.value = response.data.content || response.data
     if (response.data.totalPages !== undefined) {
       totalPages.value = response.data.totalPages
@@ -464,11 +469,11 @@ const saveMaterial = async () => {
     if (hasFile.value && currentFile.value) {
       isUploading.value = true
       uploadProgress.value = 0
-      
+
       // 创建FormData对象用于文件上传
       const formData = new FormData()
       formData.append('file', currentFile.value)
-      
+
       try {
         // 调用后端上传接口
         const uploadResponse = await apiService.post('/materials/upload', formData, {
@@ -481,9 +486,9 @@ const saveMaterial = async () => {
             }
           }
         })
-        
+
         isUploading.value = false
-        
+
         // 检查上传是否成功
         if (uploadResponse.data.success) {
           // 设置文件URL
@@ -507,7 +512,7 @@ const saveMaterial = async () => {
         return
       }
     }
-    
+
     if (showCreateModal.value) {
       // 创建新素材
       const response = await apiService.post('/materials', currentMaterial.value)
@@ -520,7 +525,7 @@ const saveMaterial = async () => {
         materials.value[index] = response.data
       }
     }
-    
+
     closeModal()
   } catch (error) {
     console.error('保存广告素材失败:', error)
@@ -578,14 +583,14 @@ const processFile = (file) => {
   currentFile.value = file
   currentFileName.value = file.name
   currentFileSize.value = file.size
-  
+
   // 设置文件类型
   if (file.type.startsWith('image/')) {
     currentFileType.value = 'image'
   } else if (file.type.startsWith('video/')) {
     currentFileType.value = 'video'
   }
-  
+
   // 生成预览
   const reader = new FileReader()
   reader.onload = (e) => {
@@ -1127,7 +1132,7 @@ const getMaterialTypeText = (type) => {
   .materials-grid {
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   }
-  
+
   .form-row {
     flex-direction: column;
     gap: 0;
