@@ -77,29 +77,21 @@ const fetchStats = async () => {
   try {
     loading.value = true
 
-    // 获取各类统计数据
-    const [materialsRes, positionsRes, advertisersRes, statsRes] = await Promise.all([
-      apiService.get('/materials'),
-      apiService.get('/positions'),
-      apiService.get('/advertisers'),
-      apiService.get('/statistics/ads')
-    ])
+    // 获取仪表盘摘要数据
+    const dashboardRes = await apiService.get('/statistics/dashboard')
+    stats.value = dashboardRes.data
 
-    // 更新统计数据
-    stats.value.materialCount = materialsRes.data.content ? materialsRes.data.content.length : materialsRes.data.length
-    stats.value.positionCount = positionsRes.data.content ? positionsRes.data.content.length : positionsRes.data.length
-    stats.value.advertiserCount = advertisersRes.data.content ? advertisersRes.data.content.length : advertisersRes.data.length
+    // 获取广告统计数据用于表格
+    const statsRes = await apiService.get('/statistics/ads')
+    
     // 处理最新的统计数据
     const sortedStats = [...statsRes.data].sort((a, b) => new Date(b.date) - new Date(a.date))
     latestStats.value = sortedStats.slice(0, 10)
 
-    // 计算今日展示次数
-    const today = new Date().toISOString().split('T')[0]
-    const todayStat = sortedStats.find(stat => stat.date === today)
-    stats.value.todayImpressions = todayStat ? todayStat.impressionsCount : 0
-
+    // 获取趋势数据用于图表
+    const trendsRes = await apiService.get('/statistics/trends')
     // 渲染图表
-    renderChart(sortedStats.slice(0, 7).reverse())
+    renderChart(trendsRes.data)
   } catch (error) {
     console.error('获取统计数据失败:', error)
   } finally {
@@ -121,8 +113,8 @@ const renderChart = (data) => {
 
   // 准备数据
   const dates = data.map(item => item.date)
-  const impressions = data.map(item => item.impressionsCount)
-  const clicks = data.map(item => item.clicksCount)
+  const impressions = data.map(item => item.impressions)
+  const clicks = data.map(item => item.clicks)
 
   // 图表配置
   const option = {

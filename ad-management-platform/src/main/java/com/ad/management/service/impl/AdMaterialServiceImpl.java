@@ -1,6 +1,6 @@
 package com.ad.management.service.impl;
 
-import com.ad.management.model.AdMaterial;
+import com.ad.management.model.entity.AdMaterial;
 import com.ad.management.repository.AdMaterialRepository;
 import com.ad.management.service.AdMaterialService;
 import org.springframework.data.domain.Page;

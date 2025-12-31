@@ -1,6 +1,9 @@
 package com.ad.management.controller;
 
-import com.ad.management.model.*;
+import com.ad.management.model.dto.AuthResponse;
+import com.ad.management.model.dto.LoginRequest;
+import com.ad.management.model.dto.RegisterRequest;
+import com.ad.management.model.entity.User;
 import com.ad.management.service.UserService;
 import com.ad.management.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +18,7 @@ public class AuthController {
 
     @Autowired
     private UserService userService;
+    
     @Autowired
     private JwtUtil jwtUtil;
 

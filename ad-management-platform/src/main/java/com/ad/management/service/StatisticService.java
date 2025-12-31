@@ -1,10 +1,11 @@
 package com.ad.management.service;
 
-import com.ad.management.model.AdStatistic;
-import com.ad.management.model.TrafficStatistic;
-import com.ad.management.model.StatisticSummary;
-import com.ad.management.model.StatisticTrend;
-import com.ad.management.model.StatisticDistribution;
+import com.ad.management.model.entity.AdStatistic;
+import com.ad.management.model.vo.TrafficStatistic;
+import com.ad.management.model.vo.StatisticSummary;
+import com.ad.management.model.vo.StatisticTrend;
+import com.ad.management.model.vo.StatisticDistribution;
+import com.ad.management.model.vo.DashboardSummary;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -60,4 +61,11 @@ public interface StatisticService {
      * @return 分布统计数据列表
      */
     List<StatisticDistribution> getStatisticDistribution(LocalDate startDate, LocalDate endDate, String dimension, String metric);
+    
+    /**
+     * 获取仪表盘摘要信息
+     *
+     * @return 仪表盘摘要信息
+     */
+    DashboardSummary getDashboardSummary();
 }

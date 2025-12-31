@@ -1,6 +1,6 @@
 package com.ad.management.repository;
 
-import com.ad.management.model.AdMaterial;
+import com.ad.management.model.entity.AdMaterial;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

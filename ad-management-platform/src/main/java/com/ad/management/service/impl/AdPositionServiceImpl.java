@@ -1,6 +1,6 @@
 package com.ad.management.service.impl;
 
-import com.ad.management.model.AdPosition;
+import com.ad.management.model.entity.AdPosition;
 import com.ad.management.repository.AdPositionRepository;
 import com.ad.management.service.AdPositionService;
 import org.springframework.data.domain.Page;

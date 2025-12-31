@@ -1,4 +1,4 @@
-package com.ad.management.model;
+package com.ad.management.model.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
@@ -10,28 +10,24 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "ad_positions")
-public class AdPosition {
+@Table(name = "users")
+public class User {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
+    @Column(unique = true, nullable = false)
+    private String username;
+    
     @Column(nullable = false)
-    private String website;
+    private String password;
     
-    @Column(name = "position_key", nullable = false)
-    private String positionKey;
+    @Column(unique = true)
+    private String email;
     
-    @Column(name = "position_name", nullable = false)
-    private String positionName;
-    
-    private Integer width;
-    
-    private Integer height;
-    
-    @Column(columnDefinition = "TEXT")
-    private String description;
+    @Column(name = "full_name")
+    private String fullName;
     
     @Column(name = "created_at")
     private LocalDateTime createdAt;

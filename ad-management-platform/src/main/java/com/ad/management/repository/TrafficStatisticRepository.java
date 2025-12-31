@@ -1,11 +1,12 @@
 package com.ad.management.repository;
 
-import com.ad.management.model.TrafficStatisticEntity;
+import com.ad.management.model.entity.TrafficStatisticEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -25,7 +26,7 @@ public interface TrafficStatisticRepository extends JpaRepository<TrafficStatist
            "(:endDate IS NULL OR t.date <= :endDate)")
     List<TrafficStatisticEntity> findByWebsiteAndDateRange(
         @Param("website") String website,
-        @Param("startDate") LocalDate startDate,
-        @Param("endDate") LocalDate endDate
+        @Param("startDate") LocalDateTime startDate,
+        @Param("endDate") LocalDateTime endDate
     );
 }

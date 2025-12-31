@@ -1,6 +1,6 @@
 package com.ad.management.repository;
 
-import com.ad.management.model.AdStatistic;
+import com.ad.management.model.entity.AdStatistic;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

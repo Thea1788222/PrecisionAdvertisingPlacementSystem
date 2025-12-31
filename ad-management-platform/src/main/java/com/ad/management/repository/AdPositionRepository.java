@@ -1,6 +1,6 @@
 package com.ad.management.repository;
 
-import com.ad.management.model.AdPosition;
+import com.ad.management.model.entity.AdPosition;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

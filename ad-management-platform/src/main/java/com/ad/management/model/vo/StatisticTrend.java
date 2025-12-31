@@ -1,4 +1,4 @@
-package com.ad.management.model;
+package com.ad.management.model.vo;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;

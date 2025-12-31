@@ -1,6 +1,6 @@
 package com.ad.management.controller;
 
-import com.ad.management.model.AdPosition;
+import com.ad.management.model.entity.AdPosition;
 import com.ad.management.service.AdPositionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
