@@ -12,4 +12,5 @@ public class VideoDTO {
     private Integer duration;
     private String playUrl;
     private String coverUrl;
+    private String category;
 }

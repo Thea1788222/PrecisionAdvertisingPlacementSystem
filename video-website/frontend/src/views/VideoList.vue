@@ -25,12 +25,15 @@
         <aside class="sidebar">
           <h3>视频分类</h3>
           <ul class="categories">
-            <li data-category="movie">🎬 电影</li>
-            <li data-category="tv">📺 电视剧</li>
-            <li data-category="anime">🎨 动画</li>
-            <li data-category="music">🎵 音乐</li>
-            <li data-category="game">🎮 游戏</li>
-            <li data-category="documentary">📚 纪录片</li>
+            <li 
+              v-for="category in categories" 
+              :key="category.key"
+              :data-category="category.key"
+              :class="{ active: selectedCategory === category.key }"
+              @click="selectCategory(category.key)"
+            >
+              {{ category.icon }} {{ category.name }}
+            </li>
           </ul>
           
           <!-- 侧边广告位 -->
@@ -42,29 +45,29 @@
 
         <!-- 视频内容 -->
         <main class="video-content">
-          <h1>热门视频</h1>
-          <div class="video-list">
+          <h1>
+            {{ selectedCategory === 'all' ? '热门视频' : categories.find(c => c.key === selectedCategory)?.name + '视频' }}
+          </h1>
+          
+          <div v-if="loading" class="loading">加载中...</div>
+          
+          <div v-else class="video-list">
             <VideoCard
-              v-for="video in videos.slice(0, 3)"
+              v-for="video in videos"
               :key="video.id"
               :video="video"
               @click="goToVideo(video.id)"
             />
+          </div>
+          
+          <div v-if="!loading && videos.length === 0" class="no-videos">
+            暂无视频数据
           </div>
           
           <!-- 信息流广告 -->
           <div class="highlight" id="feedAd" style="text-align: center; margin: 20px 0;">
             <h4>广告推广</h4>
             <div id="feedContent" class="ad-content">这里是信息流广告位</div>
-          </div>
-          
-          <div class="video-list">
-            <VideoCard
-              v-for="video in videos.slice(3)"
-              :key="video.id"
-              :video="video"
-              @click="goToVideo(video.id)"
-            />
           </div>
         </main>
 
@@ -96,6 +99,39 @@
   </div>
 </template>
 
+<style scoped>
+.categories li {
+  cursor: pointer;
+  transition: all 0.2s;
+  padding: 8px 12px;
+  margin-bottom: 4px;
+  border-radius: 4px;
+}
+
+.categories li:hover {
+  background-color: #f0f0f0;
+}
+
+.categories li.active {
+  background-color: #007bff;
+  color: white;
+}
+
+.loading {
+  text-align: center;
+  padding: 20px;
+  font-size: 16px;
+  color: #666;
+}
+
+.no-videos {
+  text-align: center;
+  padding: 40px 20px;
+  color: #999;
+  font-size: 18px;
+}
+</style>
+
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import axios from 'axios'
@@ -105,6 +141,8 @@ import { useAdTracker } from '../composables/useAdTracker'
 import '../styles/video-list.css'
 
 const videos = ref([])
+const selectedCategory = ref('all')
+const loading = ref(false)
 const router = useRouter()
 const {
   initAdTracker,
@@ -116,18 +154,43 @@ const {
 
 let searchTimeout
 
+const categories = [
+  { key: 'all', name: '全部', icon: '📹' },
+  { key: 'electronics', name: '电子产品', icon: '📱' },
+  { key: 'fashion', name: '时尚', icon: '👗' },
+  { key: 'sports', name: '体育', icon: '⚽' },
+  { key: 'home', name: '家居', icon: '🏠' },
+  { key: 'food', name: '美食', icon: '🍽️' },
+  { key: 'travel', name: '旅游', icon: '✈️' },
+  { key: 'education', name: '教育', icon: '📚' },
+  { key: 'finance', name: '金融', icon: '💰' },
+  { key: 'health', name: '健康', icon: '🏥' },
+  { key: 'beauty', name: '美容', icon: '💄' }
+]
+
+const loadVideos = async (category = 'all') => {
+  loading.value = true
+  try {
+    let url = 'http://localhost:8082/api/videos'
+    if (category !== 'all') {
+      url = `http://localhost:8082/api/videos/category/${category}`
+    }
+    const res = await axios.get(url)
+    videos.value = res.data
+    addDebugInfo(`加载视频成功: ${res.data.length}个视频 (分类: ${category})`)
+  } catch (error) {
+    addDebugInfo(`加载视频失败: ${error.message}`)
+  } finally {
+    loading.value = false
+  }
+}
+
 onMounted(async () => {
   // 初始化广告追踪SDK
   const sdkInitialized = initAdTracker()
   
   // 加载视频数据
-  try {
-    const res = await axios.get('http://track.video.com:8082/api/videos')
-    videos.value = res.data
-    addDebugInfo(`加载视频成功: ${res.data.length}个视频`)
-  } catch (error) {
-    addDebugInfo(`加载视频失败: ${error.message}`)
-  }
+  await loadVideos()
   
   // 如果SDK初始化成功，获取推荐广告
   if (sdkInitialized) {
@@ -147,7 +210,7 @@ onMounted(async () => {
   document.querySelectorAll('.categories li').forEach(li => {
     li.addEventListener('click', () => {
       const category = li.dataset.category
-      addDebugInfo(`分类点击: ${category}`)
+      selectCategory(category)
     })
   })
 })
@@ -156,6 +219,11 @@ onUnmounted(() => {
   // 清除定时器
   clearTimeout(searchTimeout)
 })
+
+function selectCategory(category) {
+  selectedCategory.value = category
+  loadVideos(category)
+}
 
 function goToVideo(id) {
   // 追踪视频点击

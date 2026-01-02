@@ -30,7 +30,7 @@ function initAdTracker() {
   try {
     if (window.adTracker) {
       window.adTracker.init({
-        trackerServer: 'http://track.video.com:8084',
+        trackerServer: 'http://localhost:8084',
         website: 'video-website'
       })
       addDebugInfo('广告追踪SDK初始化成功')
@@ -112,7 +112,7 @@ function getRecommendedAds() {
   try {
     return window.adTracker.getRecommendedAds({
       positions: ['top-banner', 'sidebar', 'feed', 'right-rail-1', 'right-rail-2', 'bottom-banner'],
-      category: 'video',
+      category: '',//不确定类别是什么，空字符串直接根据用户画像推荐
       count: 6
     }).then(ads => {
       stats.value.recommendedAdCount += ads.length

@@ -33,6 +33,17 @@ public class VideoService {
         return toDTO(v);
     }
 
+    public List<VideoDTO> getVideosByCategory(String category) {
+        try {
+            Video.VideoCategory videoCategory = Video.VideoCategory.valueOf(category.toUpperCase());
+            return videoRepository.findByCategory(videoCategory).stream()
+                    .map(this::toDTO)
+                    .collect(Collectors.toList());
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Invalid category: " + category + ". Valid categories are: electronics, fashion, sports, home, food, travel, education, finance, health, beauty");
+        }
+    }
+
     private VideoDTO toDTO(Video v) {
         // 从原URL中提取文件名（不包含斜杠）
         String playFileName = v.getPlayUrl().substring(v.getPlayUrl().lastIndexOf("/") + 1);
@@ -48,7 +59,8 @@ public class VideoService {
                 v.getDescription(),
                 v.getDuration(),
                 playUrl,
-                coverUrl
+                coverUrl,
+                v.getCategory().toString()
         );
     }
 }

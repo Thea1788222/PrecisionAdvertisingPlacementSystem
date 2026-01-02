@@ -32,6 +32,11 @@ public class VideoController implements WebMvcConfigurer {
         return videoService.getVideoById(id);
     }
 
+    @GetMapping("/videos/category/{category}")
+    public List<VideoDTO> getVideosByCategory(@PathVariable String category) {
+        return videoService.getVideosByCategory(category);
+    }
+
     // 静态资源映射保持不变
     @Value("${video.storage-path}")
     private String videoPath;
