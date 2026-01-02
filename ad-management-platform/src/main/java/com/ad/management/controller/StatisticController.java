@@ -1,11 +1,13 @@
 package com.ad.management.controller;
 
-import com.ad.management.model.AdStatistic;
-import com.ad.management.model.TrafficStatistic;
-import com.ad.management.model.StatisticSummary;
-import com.ad.management.model.StatisticTrend;
-import com.ad.management.model.StatisticDistribution;
+import com.ad.management.model.entity.AdStatistic;
+import com.ad.management.model.vo.TrafficStatistic;
+import com.ad.management.model.vo.StatisticSummary;
+import com.ad.management.model.vo.StatisticTrend;
+import com.ad.management.model.vo.StatisticDistribution;
+import com.ad.management.model.vo.DashboardSummary;
 import com.ad.management.service.StatisticService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +23,7 @@ public class StatisticController {
     private StatisticService statisticService;
 
     /**
-     * 获取广告主广告统计数据
+     * 获取广告统计数据
      *
      * @param adId     广告ID（可选）
      * @param startDate 开始日期（可选）
@@ -46,6 +48,7 @@ public class StatisticController {
      * @param endDate   结束日期（可选）
      * @return 网站流量统计数据列表
      */
+    // TODO: 获取到的数据不对
     @GetMapping("/traffic")
     public ResponseEntity<List<TrafficStatistic>> getTrafficStatistics(
             @RequestParam(required = false) String website,
@@ -110,5 +113,16 @@ public class StatisticController {
         
         List<StatisticDistribution> distribution = statisticService.getStatisticDistribution(startDate, endDate, dimension, metric);
         return ResponseEntity.ok(distribution);
+    }
+    
+    /**
+     * 获取仪表盘摘要数据
+     *
+     * @return 仪表盘摘要数据
+     */
+    @GetMapping("/dashboard")
+    public ResponseEntity<DashboardSummary> getDashboardSummary() {
+        DashboardSummary summary = statisticService.getDashboardSummary();
+        return ResponseEntity.ok(summary);
     }
 }

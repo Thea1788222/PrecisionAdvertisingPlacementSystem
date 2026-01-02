@@ -1,7 +1,7 @@
 package com.ad.management.controller;
 
-import com.ad.management.model.AdMaterial;
-import com.ad.management.model.FileUploadResponse;
+import com.ad.management.model.entity.AdMaterial;
+import com.ad.management.model.dto.FileUploadResponse;
 import com.ad.management.service.AdMaterialService;
 import com.ad.management.service.OssService;
 import org.springframework.beans.factory.annotation.Autowired;

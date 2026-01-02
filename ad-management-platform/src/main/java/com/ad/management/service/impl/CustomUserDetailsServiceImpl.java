@@ -1,6 +1,6 @@
 package com.ad.management.service.impl;
 
-import com.ad.management.model.User;
+import com.ad.management.model.entity.User;
 import com.ad.management.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;

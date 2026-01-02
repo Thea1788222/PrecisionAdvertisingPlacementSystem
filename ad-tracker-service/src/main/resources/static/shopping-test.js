@@ -1,7 +1,7 @@
 // 初始化SDK
 adTracker.init({
-    trackerServer: 'http://track.test.com:8084',
-    website: 'shopping-website'
+    trackerServer: 'http://10.100.164.35:8084',
+    website: 'shop'
 });
 
 // 调试信息记录
@@ -279,12 +279,19 @@ function renderRecommendedAds(ads) {
                     </div>
                 </div>
             `;
-            // 添加点击事件追踪 - 按照SDK集成指南追踪广告点击
-            document.getElementById('topBannerAd').onclick = (event) => {
+            // 添加点击事件追踪 - 按照商品点击追踪模式
+            const topBannerAd = document.getElementById('topBannerAd');
+            topBannerAd.addEventListener('click', () => {
                 if (ads[0].impressionId) {
                     trackAdClick(ads[0].impressionId);
+                    // 同时记录通用点击事件
+                    trackClick({
+                        targetId: `ad_${ads[0].id || 'top_banner'}`,
+                        category: `${ads[0].category}`,
+                        duration: 1
+                    });
                 }
-            };
+            });
         }
         
         // 侧边栏广告
@@ -298,11 +305,18 @@ function renderRecommendedAds(ads) {
                     </div>
                 </div>
             `;
-            document.getElementById('sidebarAd').onclick = (event) => {
+            const sidebarAd = document.getElementById('sidebarAd');
+            sidebarAd.addEventListener('click', () => {
                 if (ads[1].impressionId) {
                     trackAdClick(ads[1].impressionId);
+                    // 同时记录通用点击事件
+                    trackClick({
+                        targetId: `ad_${ads[1].id || 'sidebar'}`,
+                        category: `${ads[1].category}`,
+                        duration: 1
+                    });
                 }
-            };
+            });
         }
         
         // 信息流广告
@@ -316,11 +330,18 @@ function renderRecommendedAds(ads) {
                     </div>
                 </div>
             `;
-            document.getElementById('feedAd').onclick = (event) => {
+            const feedAd = document.getElementById('feedAd');
+            feedAd.addEventListener('click', () => {
                 if (ads[2].impressionId) {
                     trackAdClick(ads[2].impressionId);
+                    // 同时记录通用点击事件
+                    trackClick({
+                        targetId: `ad_${ads[2].id || 'feed'}`,
+                        category: `${ads[2].category}`,
+                        duration: 1
+                    });
                 }
-            };
+            });
         }
         
         // 右侧广告1
@@ -334,11 +355,18 @@ function renderRecommendedAds(ads) {
                     </div>
                 </div>
             `;
-            document.getElementById('rightAd1').onclick = (event) => {
+            const rightAd1 = document.getElementById('rightAd1');
+            rightAd1.addEventListener('click', () => {
                 if (ads[3].impressionId) {
                     trackAdClick(ads[3].impressionId);
+                    // 同时记录通用点击事件
+                    trackClick({
+                        targetId: `ad_${ads[3].id || 'right_rail_1'}`,
+                        category: `${ads[3].category}`,
+                        duration: 1
+                    });
                 }
-            };
+            });
         }
         
         // 右侧广告2
@@ -352,11 +380,18 @@ function renderRecommendedAds(ads) {
                     </div>
                 </div>
             `;
-            document.getElementById('rightAd2').onclick = (event) => {
+            const rightAd2 = document.getElementById('rightAd2');
+            rightAd2.addEventListener('click', () => {
                 if (ads[4].impressionId) {
                     trackAdClick(ads[4].impressionId);
+                    // 同时记录通用点击事件
+                    trackClick({
+                        targetId: `ad_${ads[4].id || 'right_rail_2'}`,
+                        category: `${ads[4].category}`,
+                        duration: 1
+                    });
                 }
-            };
+            });
         }
         
         // 底部广告
@@ -370,11 +405,18 @@ function renderRecommendedAds(ads) {
                     </div>
                 </div>
             `;
-            document.getElementById('bottomAd').onclick = (event) => {
+            const bottomAd = document.getElementById('bottomAd');
+            bottomAd.addEventListener('click', () => {
                 if (ads[5].impressionId) {
                     trackAdClick(ads[5].impressionId);
+                    // 同时记录通用点击事件
+                    trackClick({
+                        targetId: `ad_${ads[5].id || 'bottom_banner'}`,
+                        category: `${ads[5].category}`,
+                        duration: 1
+                    });
                 }
-            };
+            });
         }
         
         // 记录广告展示，确保参数符合SDK集成指南
@@ -411,12 +453,12 @@ document.getElementById('searchInput').addEventListener('input', (e) => {
     }, 300); // 300ms防抖
 });
 
-// 分类点击 - 按照SDK集成指南追踪分类点击（这也是一种点击行为）
+// 分类点击 - 按照SDK集成指南追踪分类点击
 document.querySelectorAll('.categories li').forEach(li => {
     li.addEventListener('click', () => {
         const category = li.dataset.category;
         trackClick({
-            targetId: `category_${category}`,
+            targetId: '',
             category: category,
             duration: 1
         });
@@ -466,15 +508,3 @@ document.addEventListener('DOMContentLoaded', () => {
     addDebugInfo('购物网站测试页面已加载完成');
     addDebugInfo(`用户指纹: ${adTracker.generateFingerprint()}`);
 });
-
-// 添加到购物车功能
-function addToCart(productId) {
-    trackClick({
-        targetId: `add_to_cart_${productId}`,
-        category: 'cart',
-        duration: 1
-    });
-    
-    // 模拟添加成功
-    alert('已添加到购物车！');
-}

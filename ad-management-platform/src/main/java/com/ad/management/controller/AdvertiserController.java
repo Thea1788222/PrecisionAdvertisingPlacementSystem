@@ -1,6 +1,6 @@
 package com.ad.management.controller;
 
-import com.ad.management.model.Advertiser;
+import com.ad.management.model.entity.Advertiser;
 import com.ad.management.service.AdvertiserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;

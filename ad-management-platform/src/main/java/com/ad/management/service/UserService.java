@@ -1,7 +1,7 @@
 package com.ad.management.service;
 
-import com.ad.management.model.User;
-import com.ad.management.model.RegisterRequest;
+import com.ad.management.model.entity.User;
+import com.ad.management.model.dto.RegisterRequest;
 import java.util.Optional;
 
 public interface UserService {

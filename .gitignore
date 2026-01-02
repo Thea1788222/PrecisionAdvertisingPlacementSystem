@@ -105,3 +105,6 @@ logs/
 **/application-prod.yml
 **/application-test.yml
 **/application-local.yml
+
+deploy.sh
+deploy-config.sh

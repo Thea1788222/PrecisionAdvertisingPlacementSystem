@@ -1,18 +1,28 @@
 package com.ad.management.service.impl;
 
-import com.ad.management.model.AdMaterial;
-import com.ad.management.model.AdStatistic;
-import com.ad.management.model.TrafficStatistic;
-import com.ad.management.model.TrafficStatisticEntity;
-import com.ad.management.model.StatisticSummary;
-import com.ad.management.model.StatisticTrend;
-import com.ad.management.model.StatisticDistribution;
+import com.ad.management.model.entity.AdMaterial;
+import com.ad.management.model.entity.AdStatistic;
+import com.ad.management.model.entity.TrafficStatisticEntity;
+import com.ad.management.model.entity.AdImpression;
+import com.ad.management.model.entity.UserBehavior;
+import com.ad.management.model.entity.AdPosition;
+import com.ad.management.model.entity.Advertiser;
+import com.ad.management.model.vo.StatisticSummary;
+import com.ad.management.model.vo.StatisticTrend;
+import com.ad.management.model.vo.StatisticDistribution;
+import com.ad.management.model.vo.DashboardSummary;
 import com.ad.management.repository.AdMaterialRepository;
 import com.ad.management.repository.AdStatisticRepository;
 import com.ad.management.repository.TrafficStatisticRepository;
+import com.ad.management.repository.AdImpressionRepository;
+import com.ad.management.repository.UserBehaviorRepository;
+import com.ad.management.repository.AdPositionRepository;
+import com.ad.management.repository.AdvertiserRepository;
 import com.ad.management.service.StatisticService;
 import org.springframework.stereotype.Service;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,13 +34,25 @@ public class StatisticServiceImpl implements StatisticService {
     private final AdStatisticRepository adStatisticRepository;
     private final AdMaterialRepository adMaterialRepository;
     private final TrafficStatisticRepository trafficStatisticRepository;
+    private final AdImpressionRepository adImpressionRepository;
+    private final UserBehaviorRepository userBehaviorRepository;
+    private final AdPositionRepository adPositionRepository;
+    private final AdvertiserRepository advertiserRepository;
     
     public StatisticServiceImpl(AdStatisticRepository adStatisticRepository, 
                                AdMaterialRepository adMaterialRepository,
-                               TrafficStatisticRepository trafficStatisticRepository) {
+                               TrafficStatisticRepository trafficStatisticRepository,
+                               AdImpressionRepository adImpressionRepository,
+                               UserBehaviorRepository userBehaviorRepository,
+                               AdPositionRepository adPositionRepository,
+                               AdvertiserRepository advertiserRepository) {
         this.adStatisticRepository = adStatisticRepository;
         this.adMaterialRepository = adMaterialRepository;
         this.trafficStatisticRepository = trafficStatisticRepository;
+        this.adImpressionRepository = adImpressionRepository;
+        this.userBehaviorRepository = userBehaviorRepository;
+        this.adPositionRepository = adPositionRepository;
+        this.advertiserRepository = advertiserRepository;
     }
     
     /**
@@ -43,12 +65,59 @@ public class StatisticServiceImpl implements StatisticService {
      */
     @Override
     public List<AdStatistic> getAdStatistics(Long adId, LocalDate startDate, LocalDate endDate) {
-        List<AdStatistic> statistics = adStatisticRepository.findByAdIdAndDateRange(adId, startDate, endDate);
+        // 从ad_impressions表获取数据
+        LocalDateTime startTime = LocalDateTime.of(startDate, LocalTime.MIN);
+        LocalDateTime endTime = LocalDateTime.of(endDate, LocalTime.MAX);
+        List<AdImpression> impressions = adImpressionRepository.findByAdIdAndDateRange(adId, startTime, endTime);
         
-        // 获取所有相关的广告素材
-        List<Long> adIds = statistics.stream()
+        // 按广告ID和日期分组统计数据
+        Map<Long, Map<LocalDate, AdStatistic>> statsMap = new HashMap<>();
+        
+        for (AdImpression impression : impressions) {
+            Long currentAdId = impression.getAdId();
+            LocalDate impressionDate = impression.getCreatedAt().toLocalDate();
+            
+            statsMap.computeIfAbsent(currentAdId, k -> new HashMap<>())
+                    .computeIfAbsent(impressionDate, d -> createNewAdStatistic(currentAdId, d));
+            
+            AdStatistic stat = statsMap.get(currentAdId).get(impressionDate);
+            stat.setImpressionsCount(stat.getImpressionsCount() + 1);
+            if (impression.getIsClicked() != null && impression.getIsClicked() == 1) {
+                stat.setClicksCount(stat.getClicksCount() + 1);
+            }
+            // 累加竞价价格作为成本
+            if (impression.getBidPrice() != null) {
+                stat.setCost(stat.getCost().add(impression.getBidPrice()));
+            }
+        }
+        
+        // 计算转化数据（从user_behaviors表）
+        List<UserBehavior> behaviors = userBehaviorRepository.findAdClickBehaviorsByAdIdAndDateRange(adId, startDate, endDate);
+        for (UserBehavior behavior : behaviors) {
+            String targetId = behavior.getTargetId();
+            if (targetId.startsWith("ad_")) {
+                try {
+                    Long behaviorAdId = Long.parseLong(targetId.substring(3)); // 去掉"ad_"前缀
+                    LocalDate behaviorDate = behavior.getCreatedAt().toLocalDate();
+                    
+                    if (statsMap.containsKey(behaviorAdId) && statsMap.get(behaviorAdId).containsKey(behaviorDate)) {
+                        AdStatistic stat = statsMap.get(behaviorAdId).get(behaviorDate);
+                        stat.setConversionsCount(stat.getConversionsCount() + 1);
+                    }
+                } catch (NumberFormatException e) {
+                    // 忽略格式不正确的targetId
+                }
+            }
+        }
+        
+        // 转换为列表并计算点击率
+        List<AdStatistic> result = statsMap.values().stream()
+                .flatMap(dateMap -> dateMap.values().stream())
+                .collect(Collectors.toList());
+        
+        // 设置广告标题
+        List<Long> adIds = result.stream()
                 .map(AdStatistic::getAdId)
-                .filter(java.util.Objects::nonNull)
                 .distinct()
                 .collect(Collectors.toList());
         
@@ -60,7 +129,7 @@ public class StatisticServiceImpl implements StatisticService {
         }
         
         // 计算点击率并设置广告标题
-        for (AdStatistic stat : statistics) {
+        for (AdStatistic stat : result) {
             // 计算点击率
             if (stat.getImpressionsCount() != null && stat.getImpressionsCount() > 0) {
                 double ctr = (double) stat.getClicksCount() / stat.getImpressionsCount();
@@ -75,7 +144,20 @@ public class StatisticServiceImpl implements StatisticService {
             }
         }
         
-        return statistics;
+        return result;
+    }
+
+    private AdStatistic createNewAdStatistic(Long adId, LocalDate date) {
+        AdStatistic stat = new AdStatistic();
+        stat.setAdId(adId);
+        stat.setDate(date);
+        stat.setImpressionsCount(0);
+        stat.setClicksCount(0);
+        stat.setConversionsCount(0);
+        stat.setCost(java.math.BigDecimal.ZERO);
+        stat.setRevenue(java.math.BigDecimal.ZERO);
+        stat.setCtr(0.0);
+        return stat;
     }
 
     /**
@@ -87,12 +169,14 @@ public class StatisticServiceImpl implements StatisticService {
      * @return 流量统计信息列表
      */
     @Override
-    public List<TrafficStatistic> getTrafficStatistics(String website, LocalDate startDate, LocalDate endDate) {
-        List<TrafficStatisticEntity> entities = trafficStatisticRepository.findByWebsiteAndDateRange(website, startDate, endDate);
+    public List<com.ad.management.model.vo.TrafficStatistic> getTrafficStatistics(String website, LocalDate startDate, LocalDate endDate) {
+        LocalDateTime startTime = LocalDateTime.of(startDate, LocalTime.MIN);
+        LocalDateTime endTime = LocalDateTime.of(endDate, LocalTime.MAX);
+        List<TrafficStatisticEntity> entities = trafficStatisticRepository.findByWebsiteAndDateRange(website, startTime, endTime);
         
         // Convert entity objects to DTO objects
         return entities.stream().map(entity -> {
-            TrafficStatistic dto = new TrafficStatistic();
+            com.ad.management.model.vo.TrafficStatistic dto = new com.ad.management.model.vo.TrafficStatistic();
             dto.setDate(entity.getDate());
             dto.setWebsite(entity.getWebsite());
             dto.setVisits(entity.getVisits());
@@ -112,22 +196,22 @@ public class StatisticServiceImpl implements StatisticService {
      */
     @Override
     public StatisticSummary getStatisticSummary(LocalDate startDate, LocalDate endDate, String website) {
-        // 获取广告统计数据
-        List<AdStatistic> adStatistics = adStatisticRepository.findByAdIdAndDateRange(null, startDate, endDate);
+        // 从ad_impressions表获取统计数据
+        LocalDateTime startTime = LocalDateTime.of(startDate, LocalTime.MIN);
+        LocalDateTime endTime = LocalDateTime.of(endDate, LocalTime.MAX);
+        List<AdImpression> impressions = adImpressionRepository.findByAdIdAndDateRange(null, startTime, endTime);
         
         // 计算总览数据
-        long totalImpressions = adStatistics.stream()
-                .mapToLong(stat -> stat.getImpressionsCount() != null ? stat.getImpressionsCount() : 0)
+        long totalImpressions = impressions.size();
+        long totalClicks = impressions.stream()
+                .filter(impression -> impression.getIsClicked() != null && impression.getIsClicked() == 1)
+                .count();
+        
+        double totalRevenue = impressions.stream()
+                .filter(impression -> impression.getBidPrice() != null)
+                .mapToDouble(impression -> impression.getBidPrice().doubleValue())
                 .sum();
-                
-        long totalClicks = adStatistics.stream()
-                .mapToLong(stat -> stat.getClicksCount() != null ? stat.getClicksCount() : 0)
-                .sum();
-                
-        double totalRevenue = adStatistics.stream()
-                .mapToDouble(stat -> stat.getRevenue() != null ? stat.getRevenue().doubleValue() : 0.0)
-                .sum();
-                
+        
         double averageCtr = totalImpressions > 0 ? (double) totalClicks / totalImpressions : 0.0;
         
         // 创建统计摘要对象
@@ -156,22 +240,28 @@ public class StatisticServiceImpl implements StatisticService {
      */
     @Override
     public List<StatisticTrend> getStatisticTrends(LocalDate startDate, LocalDate endDate, String website) {
-        // 获取广告统计数据
-        List<AdStatistic> adStatistics = adStatisticRepository.findByAdIdAndDateRange(null, startDate, endDate);
+        // 从ad_impressions表获取数据
+        LocalDateTime startTime = LocalDateTime.of(startDate, LocalTime.MIN);
+        LocalDateTime endTime = LocalDateTime.of(endDate, LocalTime.MAX);
+        List<AdImpression> impressions = adImpressionRepository.findByAdIdAndDateRange(null, startTime, endTime);
         
         // 按日期分组并聚合数据
         Map<LocalDate, StatisticTrend> trendMap = new HashMap<>();
         
-        for (AdStatistic stat : adStatistics) {
-            LocalDate date = stat.getDate();
+        for (AdImpression impression : impressions) {
+            LocalDate date = impression.getCreatedAt().toLocalDate();
             if (!trendMap.containsKey(date)) {
                 trendMap.put(date, new StatisticTrend(date));
             }
             
             StatisticTrend trend = trendMap.get(date);
-            trend.setImpressions(trend.getImpressions() + (stat.getImpressionsCount() != null ? stat.getImpressionsCount() : 0));
-            trend.setClicks(trend.getClicks() + (stat.getClicksCount() != null ? stat.getClicksCount() : 0));
-            trend.setRevenue(trend.getRevenue() + (stat.getRevenue() != null ? stat.getRevenue().doubleValue() : 0.0));
+            trend.setImpressions(trend.getImpressions() + 1);
+            if (impression.getIsClicked() != null && impression.getIsClicked() == 1) {
+                trend.setClicks(trend.getClicks() + 1);
+            }
+            if (impression.getBidPrice() != null) {
+                trend.setRevenue(trend.getRevenue() + impression.getBidPrice().doubleValue());
+            }
         }
         
         return trendMap.values().stream().collect(Collectors.toList());
@@ -188,41 +278,42 @@ public class StatisticServiceImpl implements StatisticService {
      */
     @Override
     public List<StatisticDistribution> getStatisticDistribution(LocalDate startDate, LocalDate endDate, String dimension, String metric) {
-        // 获取广告统计数据
-        List<AdStatistic> adStatistics = adStatisticRepository.findByAdIdAndDateRange(null, startDate, endDate);
+        // 从ad_impressions表获取数据
+        LocalDateTime startTime = LocalDateTime.of(startDate, LocalTime.MIN);
+        LocalDateTime endTime = LocalDateTime.of(endDate, LocalTime.MAX);
+        List<AdImpression> impressions = adImpressionRepository.findByAdIdAndDateRange(null, startTime, endTime);
         
-        // 这里我们简化处理，只按网站维度进行分布统计
-        // 实际应用中可以从广告信息中获取网站信息
+        // 按网站进行分布统计
         Map<String, Double> distributionMap = new HashMap<>();
         
         switch (metric.toLowerCase()) {
             case "impressions":
-                for (AdStatistic stat : adStatistics) {
-                    String site = "unknown"; // 简化处理，实际应从广告信息中获取网站
-                    distributionMap.put(site, distributionMap.getOrDefault(site, 0.0) + 
-                            (stat.getImpressionsCount() != null ? stat.getImpressionsCount() : 0));
+                for (AdImpression impression : impressions) {
+                    String site = impression.getWebsite() != null ? impression.getWebsite() : "unknown";
+                    distributionMap.put(site, distributionMap.getOrDefault(site, 0.0) + 1);
                 }
                 break;
             case "clicks":
-                for (AdStatistic stat : adStatistics) {
-                    String site = "unknown"; // 简化处理，实际应从广告信息中获取网站
-                    distributionMap.put(site, distributionMap.getOrDefault(site, 0.0) + 
-                            (stat.getClicksCount() != null ? stat.getClicksCount() : 0));
+                for (AdImpression impression : impressions) {
+                    if (impression.getIsClicked() != null && impression.getIsClicked() == 1) {
+                        String site = impression.getWebsite() != null ? impression.getWebsite() : "unknown";
+                        distributionMap.put(site, distributionMap.getOrDefault(site, 0.0) + 1);
+                    }
                 }
                 break;
             case "revenue":
-                for (AdStatistic stat : adStatistics) {
-                    String site = "unknown"; // 简化处理，实际应从广告信息中获取网站
-                    distributionMap.put(site, distributionMap.getOrDefault(site, 0.0) + 
-                            (stat.getRevenue() != null ? stat.getRevenue().doubleValue() : 0.0));
+                for (AdImpression impression : impressions) {
+                    String site = impression.getWebsite() != null ? impression.getWebsite() : "unknown";
+                    double value = impression.getBidPrice() != null ? impression.getBidPrice().doubleValue() : 0.0;
+                    distributionMap.put(site, distributionMap.getOrDefault(site, 0.0) + value);
                 }
                 break;
             default:
                 // 默认按收入统计
-                for (AdStatistic stat : adStatistics) {
-                    String site = "unknown"; // 简化处理，实际应从广告信息中获取网站
-                    distributionMap.put(site, distributionMap.getOrDefault(site, 0.0) + 
-                            (stat.getRevenue() != null ? stat.getRevenue().doubleValue() : 0.0));
+                for (AdImpression impression : impressions) {
+                    String site = impression.getWebsite() != null ? impression.getWebsite() : "unknown";
+                    double value = impression.getBidPrice() != null ? impression.getBidPrice().doubleValue() : 0.0;
+                    distributionMap.put(site, distributionMap.getOrDefault(site, 0.0) + value);
                 }
         }
         
@@ -239,5 +330,30 @@ public class StatisticServiceImpl implements StatisticService {
                     return dist;
                 })
                 .collect(Collectors.toList());
+    }
+    
+    /**
+     * 获取仪表盘摘要信息
+     *
+     * @return 仪表盘摘要信息
+     */
+    @Override
+    public DashboardSummary getDashboardSummary() {
+        // 获取广告素材总数
+        Long materialCount = (long) adMaterialRepository.findAll().size();
+        
+        // 获取广告位总数
+        Long positionCount = (long) adPositionRepository.findAll().size();
+        
+        // 获取广告商总数
+        Long advertiserCount = (long) advertiserRepository.findAll().size();
+        
+        // 获取今日展示次数 - 从ad_impressions表获取
+        LocalDate today = LocalDate.now();
+        LocalDateTime startTime = LocalDateTime.of(today, LocalTime.MIN);
+        LocalDateTime endTime = LocalDateTime.of(today, LocalTime.MAX);
+        Long todayImpressions = adImpressionRepository.countImpressionsByAdIdAndDateRange(null, startTime, endTime);
+        
+        return new DashboardSummary(materialCount, positionCount, advertiserCount, todayImpressions);
     }
 }

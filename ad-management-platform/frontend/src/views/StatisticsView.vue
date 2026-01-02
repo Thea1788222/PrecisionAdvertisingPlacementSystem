@@ -25,7 +25,7 @@
           <label>网站</label>
           <select v-model="filters.website">
             <option value="">全部网站</option>
-            <option value="shopping">购物网站</option>
+            <option value="shop">购物网站</option>
             <option value="video">视频网站</option>
             <option value="news">新闻网站</option>
           </select>
@@ -209,90 +209,9 @@ const loadStats = async () => {
     })
   } catch (error) {
     console.error('加载统计数据失败:', error)
-    // 使用模拟数据以便开发
-    loadMockData()
+    // 不再使用模拟数据，而是显示错误信息
+    alert('加载统计数据失败: ' + (error.message || '未知错误'))
   }
-}
-
-const loadMockData = () => {
-  summary.value = {
-    totalImpressions: 125480,
-    totalClicks: 8752,
-    totalRevenue: 15680.00,
-    averageCtr: 6.98,
-    impressionsChange: 12.5,
-    clicksChange: 8.3,
-    revenueChange: 15.7,
-    ctrChange: -1.2
-  }
-
-  statItems.value = [
-    {
-      id: 1,
-      date: '2023-06-01',
-      adTitle: '科技产品推广',
-      impressionsCount: 15420,
-      clicksCount: 1250,
-      ctr: 0.081,
-      revenue: 2450.00
-    },
-    {
-      id: 2,
-      date: '2023-06-01',
-      adTitle: '时尚品牌宣传',
-      impressionsCount: 22150,
-      clicksCount: 1870,
-      ctr: 0.084,
-      revenue: 3120.00
-    },
-    {
-      id: 3,
-      date: '2023-06-01',
-      adTitle: '家居用品广告',
-      impressionsCount: 9800,
-      clicksCount: 680,
-      ctr: 0.069,
-      revenue: 980.00
-    }
-  ]
-
-  window.trendsData = [
-    {
-      date: '2023-06-01',
-      impressions: 47370,
-      clicks: 3800,
-      revenue: 6550.00
-    },
-    {
-      date: '2023-06-02',
-      impressions: 51900,
-      clicks: 4200,
-      revenue: 7250.00
-    }
-  ]
-
-  window.distributionData = [
-    {
-      dimension: '购物网站',
-      metricValue: 31500,
-      percentage: 35.2
-    },
-    {
-      dimension: '视频网站',
-      metricValue: 47750,
-      percentage: 53.3
-    },
-    {
-      dimension: '新闻网站',
-      metricValue: 10300,
-      percentage: 11.5
-    }
-  ]
-
-  nextTick(() => {
-    renderChart()
-    renderPieChart()
-  })
 }
 
 const handleSearch = () => {

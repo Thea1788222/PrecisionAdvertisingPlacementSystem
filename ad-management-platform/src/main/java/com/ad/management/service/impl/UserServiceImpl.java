@@ -1,7 +1,7 @@
 package com.ad.management.service.impl;
 
-import com.ad.management.model.User;
-import com.ad.management.model.RegisterRequest;
+import com.ad.management.model.dto.RegisterRequest;
+import com.ad.management.model.entity.User;
 import com.ad.management.repository.UserRepository;
 import com.ad.management.service.UserService;
 import org.springframework.security.crypto.password.PasswordEncoder;

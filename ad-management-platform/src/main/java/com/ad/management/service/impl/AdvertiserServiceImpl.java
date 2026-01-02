@@ -1,6 +1,6 @@
 package com.ad.management.service.impl;
 
-import com.ad.management.model.Advertiser;
+import com.ad.management.model.entity.Advertiser;
 import com.ad.management.repository.AdvertiserRepository;
 import com.ad.management.service.AdvertiserService;
 import org.springframework.data.domain.Page;
