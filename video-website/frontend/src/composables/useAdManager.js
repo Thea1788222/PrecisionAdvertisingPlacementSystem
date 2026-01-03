@@ -31,7 +31,7 @@ export function useAdManager() {
           return true
         })
 
-        const ad = filteredAds[0] || ads[0]
+        const ad = filteredAds[2] || filteredAds[0] || ads[0]
         if (ad) {
           ad.playUrl = ad.videoUrl || ''
           ad.position = positionType
@@ -99,7 +99,13 @@ export function useAdManager() {
     adTitle.value = ad.title || '广告'
     startAdCountdown(isVideoAd.value ? 'video' : 'image')
 
-    if (isVideoAd.value && adVideoRef?.play) adVideoRef.play().catch(() => {})
+    if (isVideoAd.value && adVideoRef?.play) {
+      adVideoRef.muted = true      // 静音
+      adVideoRef.play().catch(err => {
+        console.warn('广告视频自动播放被阻止:', err)
+      })
+    }
+
     return true
   }
 
