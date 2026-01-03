@@ -2,13 +2,21 @@
   <div>
     <h1>{{ video.title }}</h1>
     <div class="video-container">
-      <video ref="videoPlayer" width="640" height="360" controls v-if="video.playUrl">
+      <!-- 主视频 -->
+      <video
+        ref="videoPlayer"
+        width="640"
+        height="360"
+        controls
+        @play="handleVideoPlay"
+        v-if="video.playUrl"
+      >
         <source :src="video.playUrl" type="video/mp4" />
         您的浏览器不支持视频播放。
       </video>
 
-      <!-- 广告覆盖层组件 -->
-      <AdOverlay 
+      <!-- 广告覆盖层 -->
+      <AdOverlay
         v-if="showAd"
         :showAd="showAd"
         :currentAd="currentAd"
@@ -16,9 +24,10 @@
         :adCountdown="adCountdown"
         :isVideoAd="isVideoAd"
         :isImageAd="isImageAd"
-        @ad-ended="handleAdEnded"
+        :canSkipAd="canSkipAd"
+        @ad-ended="handleAdEndedInternal"
         @ad-click="trackAdClick"
-        @ad-skip="skipAd"
+        @ad-skip="skipAdInternal"
         ref="adOverlayRef"
       />
     </div>
@@ -27,7 +36,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, onMounted, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { useVideoPlayer } from '@/composables/useVideoPlayer'
 import { useAdManager } from '@/composables/useAdManager'
@@ -36,103 +45,80 @@ import AdOverlay from '@/components/AdOverlay.vue'
 
 const route = useRoute()
 
-// 初始化各模块
+// 视频播放器逻辑
 const { 
   video, 
   videoPlayer, 
-  isVideoReady,
-  loadVideo,
-  setTimeUpdateListener,
-  setPlayListener,
-  setMidRollAdListener,
-  getShownAdPositions
+  loadVideo, 
+  setupVideoListeners, 
+  setMidRollAdListener 
 } = useVideoPlayer()
 
+// 广告管理
 const {
   showAd,
   currentAd,
   adTitle,
   adCountdown,
-  preRollAdShown,
   isVideoAd,
   isImageAd,
+  canSkipAd,
+  preRollPlayed,
+  playedMidRollPositions,
   playPreRollAd,
-  playMidRollAd,
-  handleAdEnded: handleAdEndedInternal,
+  playMidRollAdAt,
   skipAd,
+  handleAdEnded,
   trackAdClickReal
 } = useAdManager()
 
 const { initAdTracker } = useAdTracker()
 
-// 引用
 const adOverlayRef = ref(null)
 
-// 初始化广告SDK
-const initAdSDK = () => {
-  console.log('正在初始化广告追踪SDK...');
-  initAdTracker();
-};
-
-// 事件处理函数
-const handleAdEnded = () => {
-  const adVideo = adOverlayRef.value?.adVideo
-  handleAdEndedInternal(adVideo, videoPlayer)
+// 播放前贴片广告
+const handleVideoPlay = async () => {
+  if (!preRollPlayed.value) {
+    const adVideo = adOverlayRef.value?.adVideo || null
+    await playPreRollAd(adVideo, videoPlayer.value)
+  }
 }
 
+// 设置中插广告监听器
+const handleMidRollAd = async (positionIndex) => {
+  const adVideo = adOverlayRef.value?.adVideo || null
+  await playMidRollAdAt(positionIndex, adVideo, videoPlayer.value)
+}
+
+// 跳过广告
+const skipAdInternal = (adVideoRef) => {
+  skipAd(adVideoRef, videoPlayer.value)
+}
+
+// 广告结束处理
+const handleAdEndedInternal = (adVideoRef) => {
+  handleAdEnded(adVideoRef, videoPlayer.value)
+}
+
+// 广告点击处理
 const trackAdClick = () => {
   trackAdClickReal()
 }
 
-const skipAdInternal = () => {
-  skipAd()
-}
-
-// 处理中插广告
-const handleMidRollAd = async () => {
-  const adVideo = adOverlayRef.value?.adVideo
-  await playMidRollAd(adVideo, videoPlayer)
-}
-
-// 播放前贴片广告
-const playPreRollAdInternal = async () => {
-  const adVideo = adOverlayRef.value?.adVideo
-  return await playPreRollAd(adVideo, videoPlayer)
-}
-
-// 组件挂载时初始化
+// 组件挂载
 onMounted(async () => {
-  // 加载视频数据
-  const id = route.params.id
-  await loadVideo(id)
+  const videoId = route.params.id
+  await loadVideo(videoId)
 
   // 初始化广告SDK
-  initAdSDK()
+  initAdTracker()
 
-  // 设置播放进度监听
-  setTimeUpdateListener(() => {
-    // 检查是否需要播放中插广告
-    // 这个逻辑现在在useVideoPlayer中处理，由checkMidRollAd内部调用
-  })
+  // 设置中插广告监听器
+  setMidRollAdListener(handleMidRollAd)
 
-  // 设置播放事件监听，用于前贴片广告
-  setPlayListener(async () => {
-    // 如果前贴片广告未展示，则播放广告
-    if (!preRollAdShown.value) {
-      await playPreRollAdInternal()
-    }
-  })
-
-  // 设置中插广告监听
-  setMidRollAdListener(async () => {
-    await handleMidRollAd()
-  })
-})
-
-// 组件卸载前清理
-onBeforeUnmount(() => {
-  // 清理资源
-  // useAdManager的cleanup会被自动调用
+  // 等待视频元素渲染完成后设置监听器
+  await nextTick()
+  setupVideoListeners()
 })
 </script>
 

@@ -5,12 +5,12 @@
       <div class="logo">视频网站</div>
       <div class="search-bar">
         <div class="search-container">
-          <input 
-            type="text" 
-            id="searchInput" 
+          <input
+            type="text"
+            id="searchInput"
             v-model="searchQuery"
             @keyup.enter="performSearch"
-            placeholder="搜索视频..." 
+            placeholder="搜索视频..."
           >
           <button @click="performSearch" class="search-btn">🔍</button>
         </div>
@@ -33,8 +33,8 @@
         <aside class="sidebar">
           <h3>视频分类</h3>
           <ul class="categories">
-            <li 
-              v-for="category in categories" 
+            <li
+              v-for="category in categories"
               :key="category.key"
               :data-category="category.key"
               :class="{ active: selectedCategory === category.key }"
@@ -43,7 +43,7 @@
               {{ category.icon }} {{ category.name }}
             </li>
           </ul>
-          
+
           <!-- 侧边广告位 -->
           <div class="sidebar-ad" id="sidebarAd">
             <h4>广告推广</h4>
@@ -56,9 +56,9 @@
           <h1>
             {{ selectedCategory === 'all' ? '热门视频' : categories.find(c => c.key === selectedCategory)?.name + '视频' }}
           </h1>
-          
+
           <div v-if="loading" class="loading">加载中...</div>
-          
+
           <div v-else class="video-list">
             <VideoCard
               v-for="video in videos"
@@ -67,11 +67,11 @@
               @click="goToVideo(video.id)"
             />
           </div>
-          
+
           <div v-if="!loading && videos.length === 0" class="no-videos">
             暂无视频数据
           </div>
-          
+
           <!-- 信息流广告 -->
           <div class="highlight" id="feedAd" style="text-align: center; margin: 20px 0;">
             <h4>广告推广</h4>
@@ -108,7 +108,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted} from 'vue'
 import axios from 'axios'
 import VideoCard from '../components/VideoCard.vue'
 import { useRouter } from 'vue-router'
@@ -128,7 +128,6 @@ const {
   addDebugInfo
 } = useAdTracker()
 
-let searchTimeout
 
 const categories = [
   { key: 'all', name: '全部', icon: '📹' },
@@ -164,15 +163,15 @@ const loadVideos = async (category = 'all') => {
 onMounted(async () => {
   // 初始化广告追踪SDK
   const sdkInitialized = initAdTracker()
-  
+
   // 加载视频数据
   await loadVideos()
-  
+
   // 如果SDK初始化成功，获取推荐广告
   if (sdkInitialized) {
     getRecommendedAds()
   }
-  
+
   // 设置分类点击事件
   document.querySelectorAll('.categories li').forEach(li => {
     li.addEventListener('click', () => {
@@ -194,10 +193,10 @@ function selectCategory(category) {
 async function performSearch() {
   const query = searchQuery.value.trim()
   if (!query) return
-  
+
   // 使用SDK追踪搜索行为
   trackSearch(query)
-  
+
   loading.value = true
   try {
     const response = await axios.get('http://localhost:8082/api/videos/search', {
@@ -205,10 +204,10 @@ async function performSearch() {
         query: query
       }
     })
-    
+
     videos.value = response.data
     selectedCategory.value = 'search'
-    
+
     if (response.data.length === 0) {
       addDebugInfo(`搜索"${query}"没有找到相关结果`)
     } else {
