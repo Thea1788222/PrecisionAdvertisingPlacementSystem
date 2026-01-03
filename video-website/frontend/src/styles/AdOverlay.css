@@ -1,0 +1,91 @@
+.ad-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.ad-content {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+  max-width: 680px;
+  width: 90%;
+}
+
+.ad-countdown {
+  background: #ff4444;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+.ad-video {
+  margin-bottom: 15px;
+}
+
+.ad-video video {
+  width: 100%;
+  max-width: 640px;
+  height: auto;
+}
+
+.ad-image-container {
+  margin-bottom: 15px;
+}
+
+.ad-image {
+  max-width: 100%;
+  height: auto;
+  cursor: pointer;
+}
+
+.ad-info {
+  margin-top: 15px;
+}
+
+.ad-info p {
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+
+.ad-click-btn, .ad-skip-btn {
+  padding: 8px 16px;
+  margin: 0 5px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.ad-click-btn {
+  background: #007bff;
+  color: white;
+}
+
+.ad-click-btn:hover {
+  background: #0056b3;
+}
+
+.ad-skip-btn {
+  background: #6c757d;
+  color: white;
+}
+
+.ad-skip-btn:hover:not(:disabled) {
+  background: #545b62;
+}
+
+.ad-skip-btn:disabled {
+  background: #adb5bd;
+  cursor: not-allowed;
+}
