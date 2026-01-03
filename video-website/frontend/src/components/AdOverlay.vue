@@ -8,12 +8,26 @@
         <span v-else-if="isImageAd">图片广告将在 {{ adCountdown }} 秒后关闭</span>
       </div>
 
-      <video v-if="isVideoAd" ref="adVideo" width="640" height="360" controls @ended="handleAdEnded">
-        <source :src="currentAd.playUrl" type="video/mp4" />
+      <video
+        v-if="isVideoAd"
+        ref="adVideo"
+        width="640"
+        height="360"
+        autoplay
+        muted
+        playsinline
+        controls
+        @ended="handleAdEnded"
+      >
         您的浏览器不支持视频播放。
       </video>
 
-      <img v-else-if="isImageAd" :src="currentAd.imageUrl" :alt="currentAd.title" @click="trackAdClick" />
+      <img
+        v-else-if="isImageAd"
+        :src="currentAd.imageUrl"
+        :alt="currentAd.title"
+        @click="trackAdClick"
+      />
 
       <div class="ad-actions" v-if="isVideoAd">
         <button @click="skipAd" :disabled="!canSkipAd">
@@ -25,7 +39,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, nextTick } from 'vue'
 
 defineProps({
   showAd: { type: Boolean, required: true },
@@ -40,11 +54,33 @@ defineProps({
 const emit = defineEmits(['ad-ended', 'ad-click', 'ad-skip'])
 const adVideo = ref(null)
 
+const getVideoType = (url) => {
+  if (url.endsWith('.mp4')) return 'video/mp4'
+  if (url.endsWith('.webm')) return 'video/webm'
+  if (url.endsWith('.ogg')) return 'video/ogg'
+  return 'video/mp4' // 默认 fallback
+}
+
+// 外部调用播放视频广告
+const playVideoAd = async (ad) => {
+  if (!adVideo.value || !ad?.playUrl) return
+  await nextTick()
+  adVideo.value.innerHTML = `<source src="${ad.playUrl}" type="${getVideoType(ad.playUrl)}" />`
+  adVideo.value.load()
+  adVideo.value.play().catch(err => console.warn('广告播放失败', err))
+  adVideo.value.muted = true
+  adVideo.value.autoplay = true
+  adVideo.value.playsInline = true
+  adVideo.value.load()
+  adVideo.value.play().catch(err => console.warn('广告播放失败', err))
+}
+
+// 事件
 const handleAdEnded = () => emit('ad-ended')
 const trackAdClick = () => emit('ad-click')
 const skipAd = () => emit('ad-skip', adVideo.value)
 
-defineExpose({ adVideo })
+defineExpose({ adVideo, playVideoAd })
 </script>
 
 <style scoped>

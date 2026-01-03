@@ -1,4 +1,4 @@
-import { ref } from 'vue'
+import { ref, nextTick } from 'vue'
 import { useAdTracker } from './useAdTracker'
 
 export function useAdManager() {
@@ -10,18 +10,18 @@ export function useAdManager() {
   const isVideoAd = ref(false)
   const isImageAd = ref(false)
   const canSkipAd = ref(false)
-
   const preRollPlayed = ref(false)
   const playedMidRollPositions = ref(new Set())
 
-  const { getRecommendedAds, trackAdImpression, trackAdClick } = useAdTracker()
+  const { getRecommendedAds, trackAdClick } = useAdTracker()
 
+  // -----------------------
+  // 获取广告
+  // -----------------------
   const getAd = async (positionType) => {
     try {
       const ads = await getRecommendedAds()
-      console.log(`[调试] 获取到的广告列表:`, ads) // <-- 这里加一行调试信息
       if (ads?.length) {
-        // 根据位置类型筛选广告
         const filteredAds = ads.filter(ad => {
           if (positionType === 'video-pre-roll') {
             return ad.position === 'right-rail-1' || !ad.position
@@ -30,8 +30,11 @@ export function useAdManager() {
           }
           return true
         })
+        const ad = filteredAds[0] || ads[0]
+        console.log('广告视频 URL:', ad.videoUrl)
+        console.log('原始广告对象:', JSON.stringify(ad, null, 2))
 
-        const ad = filteredAds[2] || filteredAds[0] || ads[0]
+
         if (ad) {
           ad.playUrl = ad.videoUrl || ''
           ad.position = positionType
@@ -43,21 +46,10 @@ export function useAdManager() {
       console.error('获取广告失败:', e)
     }
   }
-/*
-  const trackAdImpressionReal = async (ad) => {
-    try {
-      const impressionId = await trackAdImpression(ad.id, ad.position || 'video-ad', ad.bidPrice)
-      return impressionId
-    } catch (e) {
-      console.error('记录广告展示失败:', e)
-    }
-  }
-  */
 
-  const trackAdClickReal = () => {
-    if (currentAd.value) trackAdClick(currentAd.value.id)
-  }
-
+  // -----------------------
+  // 倒计时逻辑
+  // -----------------------
   const startAdCountdown = (adType, duration = 5) => {
     clearInterval(adTimer.value)
     adCountdown.value = duration
@@ -70,22 +62,23 @@ export function useAdManager() {
     }, 1000)
   }
 
-  const hideAd = (adVideoRef = null) => {
+  // -----------------------
+  // 隐藏广告
+  // -----------------------
+  const hideAd = (mainVideoRef = null) => {
     clearInterval(adTimer.value)
-    adTimer.value = null
     showAd.value = false
     isVideoAd.value = false
     isImageAd.value = false
     currentAd.value = null
 
-    if (adVideoRef?.pause) {
-      adVideoRef.pause()
-      adVideoRef.currentTime = 0
-      adVideoRef.muted = false
-    }
+    if (mainVideoRef?.play) mainVideoRef.play().catch(() => {})
   }
 
-  const playPreRollAd = async (adVideoRef) => {
+  // -----------------------
+  // 播放前贴片广告
+  // -----------------------
+  const playPreRollAd = async () => {
     if (preRollPlayed.value) return false
     preRollPlayed.value = true
 
@@ -99,17 +92,13 @@ export function useAdManager() {
     adTitle.value = ad.title || '广告'
     startAdCountdown(isVideoAd.value ? 'video' : 'image')
 
-    if (isVideoAd.value && adVideoRef?.play) {
-      adVideoRef.muted = true      // 静音
-      adVideoRef.play().catch(err => {
-        console.warn('广告视频自动播放被阻止:', err)
-      })
-    }
-
-    return true
+    return ad
   }
 
-  const playMidRollAdAt = async (positionIndex, adVideoRef, mainVideoRef) => {
+  // -----------------------
+  // 播放中插广告
+  // -----------------------
+  const playMidRollAdAt = async (positionIndex, mainVideoRef) => {
     if (playedMidRollPositions.value.has(positionIndex)) return false
     playedMidRollPositions.value.add(positionIndex)
 
@@ -124,22 +113,24 @@ export function useAdManager() {
     startAdCountdown(isVideoAd.value ? 'video' : 'image')
 
     mainVideoRef?.pause()
-    if (isVideoAd.value && adVideoRef?.play) adVideoRef.play().catch(() => {})
-    return true
+    return ad
   }
 
-  const skipAd = (adVideoRef, mainVideoRef) => {
-    hideAd(adVideoRef)
-    mainVideoRef?.play().catch(() => {})
-  }
+  // -----------------------
+  // 跳过广告
+  // -----------------------
+  const skipAd = (mainVideoRef) => hideAd(mainVideoRef)
 
-  const handleAdEnded = (adVideoRef, mainVideoRef) => {
-    hideAd(adVideoRef)
-    mainVideoRef?.play().catch(() => {})
-  }
+  // -----------------------
+  // 广告播放结束
+  // -----------------------
+  const handleAdEnded = (mainVideoRef) => hideAd(mainVideoRef)
 
-  const cleanup = () => {
-    clearInterval(adTimer.value)
+  // -----------------------
+  // 广告点击
+  // -----------------------
+  const trackAdClickReal = () => {
+    if (currentAd.value) trackAdClick(currentAd.value.id)
   }
 
   return {
@@ -156,7 +147,6 @@ export function useAdManager() {
     playMidRollAdAt,
     skipAd,
     handleAdEnded,
-    trackAdClickReal,
-    cleanup
+    trackAdClickReal
   }
 }

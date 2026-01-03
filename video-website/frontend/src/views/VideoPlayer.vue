@@ -18,6 +18,7 @@
       <!-- 广告覆盖层 -->
       <AdOverlay
         v-if="showAd"
+        ref="adOverlayRef"
         :showAd="showAd"
         :currentAd="currentAd"
         :adTitle="adTitle"
@@ -28,7 +29,6 @@
         @ad-ended="handleAdEndedInternal"
         @ad-click="trackAdClick"
         @ad-skip="skipAdInternal"
-        ref="adOverlayRef"
       />
     </div>
     <p>{{ video.description }}</p>
@@ -45,16 +45,20 @@ import AdOverlay from '@/components/AdOverlay.vue'
 
 const route = useRoute()
 
+// ------------------------
 // 视频播放器逻辑
-const { 
-  video, 
-  videoPlayer, 
-  loadVideo, 
-  setupVideoListeners, 
-  setMidRollAdListener 
+// ------------------------
+const {
+  video,
+  videoPlayer,
+  loadVideo,
+  setupVideoListeners,
+  setMidRollAdListener
 } = useVideoPlayer()
 
+// ------------------------
 // 广告管理
+// ------------------------
 const {
   showAd,
   currentAd,
@@ -64,7 +68,6 @@ const {
   isImageAd,
   canSkipAd,
   preRollPlayed,
-  playedMidRollPositions,
   playPreRollAd,
   playMidRollAdAt,
   skipAd,
@@ -73,44 +76,61 @@ const {
 } = useAdManager()
 
 const { initAdTracker } = useAdTracker()
-
 const adOverlayRef = ref(null)
 
+// ------------------------
 // 播放前贴片广告
+// ------------------------
 const handleVideoPlay = async () => {
   if (!preRollPlayed.value) {
-    const adVideo = adOverlayRef.value?.adVideo || null
-    await playPreRollAd(adVideo, videoPlayer.value)
+    const ad = await playPreRollAd()
+    if (ad && adOverlayRef.value) {
+      await nextTick()
+      await adOverlayRef.value.playVideoAd(ad)
+    }
   }
 }
 
-// 设置中插广告监听器
+// ------------------------
+// 中插广告监听
+// ------------------------
 const handleMidRollAd = async (positionIndex) => {
-  const adVideo = adOverlayRef.value?.adVideo || null
-  await playMidRollAdAt(positionIndex, adVideo, videoPlayer.value)
+  if (!videoPlayer.value || !adOverlayRef.value) return
+  const ad = await playMidRollAdAt(positionIndex, videoPlayer.value)
+  if (ad) {
+    await nextTick()
+    await adOverlayRef.value.playVideoAd(ad)
+  }
 }
 
+// ------------------------
 // 跳过广告
-const skipAdInternal = (adVideoRef) => {
-  skipAd(adVideoRef, videoPlayer.value)
+// ------------------------
+const skipAdInternal = () => {
+  if (!videoPlayer.value) return
+  skipAd(videoPlayer.value)
 }
 
+// ------------------------
 // 广告结束处理
-const handleAdEndedInternal = (adVideoRef) => {
-  handleAdEnded(adVideoRef, videoPlayer.value)
+// ------------------------
+const handleAdEndedInternal = () => {
+  handleAdEnded(videoPlayer.value)
 }
 
+// ------------------------
 // 广告点击处理
-const trackAdClick = () => {
-  trackAdClickReal()
-}
+// ------------------------
+const trackAdClick = () => trackAdClickReal()
 
+// ------------------------
 // 组件挂载
+// ------------------------
 onMounted(async () => {
   const videoId = route.params.id
   await loadVideo(videoId)
 
-  // 初始化广告SDK
+  // 初始化广告 SDK
   initAdTracker()
 
   // 设置中插广告监听器
