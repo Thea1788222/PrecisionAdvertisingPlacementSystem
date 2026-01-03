@@ -44,6 +44,28 @@ public class VideoService {
         }
     }
 
+    public List<VideoDTO> searchVideos(String query) {
+        if (query == null || query.trim().isEmpty()) {
+            return videoRepository.findAll().stream()
+                    .map(this::toDTO)
+                    .collect(Collectors.toList());
+        }
+        
+        String trimmedQuery = query.trim();
+        List<Video> results = videoRepository.searchVideos(trimmedQuery);
+        
+        // 限制返回结果数量，避免返回过多数据
+        if (results.size() > 100) {
+            results = results.subList(0, 100);
+        }
+        
+        return results.stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
+    }
+
+
+
     private VideoDTO toDTO(Video v) {
         // 从原URL中提取文件名（不包含斜杠）
         String playFileName = v.getPlayUrl().substring(v.getPlayUrl().lastIndexOf("/") + 1);

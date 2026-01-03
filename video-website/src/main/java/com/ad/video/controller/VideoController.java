@@ -5,6 +5,7 @@ import com.ad.video.service.VideoService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
@@ -36,6 +37,13 @@ public class VideoController implements WebMvcConfigurer {
     public List<VideoDTO> getVideosByCategory(@PathVariable String category) {
         return videoService.getVideosByCategory(category);
     }
+
+    @GetMapping("/videos/search")
+    public List<VideoDTO> searchVideos(@RequestParam String query) {
+        return videoService.searchVideos(query);
+    }
+
+
 
     // 静态资源映射保持不变
     @Value("${video.storage-path}")

@@ -4,11 +4,19 @@
     <header class="header">
       <div class="logo">视频网站</div>
       <div class="search-bar">
-        <input type="text" id="searchInput" placeholder="搜索视频...">
+        <div class="search-container">
+          <input 
+            type="text" 
+            id="searchInput" 
+            v-model="searchQuery"
+            @keyup.enter="performSearch"
+            placeholder="搜索视频..." 
+          >
+          <button @click="performSearch" class="search-btn">🔍</button>
+        </div>
       </div>
       <div class="nav-icons">
         <div class="nav-icon">🔍</div>
-        <div class="nav-icon">👤</div>
       </div>
     </header>
 
@@ -99,39 +107,6 @@
   </div>
 </template>
 
-<style scoped>
-.categories li {
-  cursor: pointer;
-  transition: all 0.2s;
-  padding: 8px 12px;
-  margin-bottom: 4px;
-  border-radius: 4px;
-}
-
-.categories li:hover {
-  background-color: #f0f0f0;
-}
-
-.categories li.active {
-  background-color: #007bff;
-  color: white;
-}
-
-.loading {
-  text-align: center;
-  padding: 20px;
-  font-size: 16px;
-  color: #666;
-}
-
-.no-videos {
-  text-align: center;
-  padding: 40px 20px;
-  color: #999;
-  font-size: 18px;
-}
-</style>
-
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import axios from 'axios'
@@ -143,6 +118,7 @@ import '../styles/video-list.css'
 const videos = ref([])
 const selectedCategory = ref('all')
 const loading = ref(false)
+const searchQuery = ref('')
 const router = useRouter()
 const {
   initAdTracker,
@@ -197,15 +173,6 @@ onMounted(async () => {
     getRecommendedAds()
   }
   
-  // 设置搜索事件监听
-  const searchInput = document.getElementById('searchInput')
-  if (searchInput) {
-    searchInput.addEventListener('input', (e) => {
-      const query = e.target.value.trim()
-      trackSearch(query)
-    })
-  }
-  
   // 设置分类点击事件
   document.querySelectorAll('.categories li').forEach(li => {
     li.addEventListener('click', () => {
@@ -215,14 +182,45 @@ onMounted(async () => {
   })
 })
 
-onUnmounted(() => {
-  // 清除定时器
-  clearTimeout(searchTimeout)
-})
+
 
 function selectCategory(category) {
   selectedCategory.value = category
+  searchQuery.value = ''
   loadVideos(category)
+}
+
+// 搜索功能
+async function performSearch() {
+  const query = searchQuery.value.trim()
+  if (!query) return
+  
+  // 使用SDK追踪搜索行为
+  trackSearch(query)
+  
+  loading.value = true
+  try {
+    const response = await axios.get('http://localhost:8082/api/videos/search', {
+      params: {
+        query: query
+      }
+    })
+    
+    videos.value = response.data
+    selectedCategory.value = 'search'
+    
+    if (response.data.length === 0) {
+      addDebugInfo(`搜索"${query}"没有找到相关结果`)
+    } else {
+      addDebugInfo(`搜索"${query}"完成: 找到 ${response.data.length} 个结果`)
+    }
+  } catch (error) {
+    addDebugInfo(`搜索失败: ${error.message}`)
+    // 搜索失败时清空视频列表
+    videos.value = []
+  } finally {
+    loading.value = false
+  }
 }
 
 function goToVideo(id) {

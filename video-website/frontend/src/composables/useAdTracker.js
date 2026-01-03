@@ -30,8 +30,8 @@ function initAdTracker() {
   try {
     if (window.adTracker) {
       window.adTracker.init({
-        trackerServer: 'http://localhost:8084',
-        website: 'video-website'
+        trackerServer: 'http://10.100.164.35:8084',
+        website: 'video'
       })
       addDebugInfo('广告追踪SDK初始化成功')
       addDebugInfo(`用户指纹: ${window.adTracker.generateFingerprint()}`)
