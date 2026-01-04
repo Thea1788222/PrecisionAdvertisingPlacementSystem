@@ -31,8 +31,17 @@
           </select>
         </div>
         <div class="form-group">
-          <button class="btn btn-secondary" @click="handleSearch">
-            查询
+          <label>分布指标</label>
+          <select v-model="filters.metric">
+            <option value="revenue">收入</option>
+            <option value="impressions">展示次数</option>
+            <option value="clicks">点击次数</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <button class="btn btn-secondary" @click="handleSearch" :disabled="loading.stats">
+            <span v-if="loading.stats">查询中...</span>
+            <span v-else>查询</span>
           </button>
         </div>
       </div>
@@ -43,29 +52,29 @@
       <div class="stat-card">
         <h3>总展示次数</h3>
         <p class="stat-number">{{ formatNumber(summary.totalImpressions) }}</p>
-        <p class="stat-change" :class="summary.impressionsChange >= 0 ? 'positive' : 'negative'">
-          {{ summary.impressionsChange >= 0 ? '↑' : '↓' }} {{ Math.abs(summary.impressionsChange) }}%
+        <p class="stat-change" :class="getChangeClass(summary.impressionsChange)">
+          {{ getChangeSymbol(summary.impressionsChange) }} {{ Math.abs(summary.impressionsChange).toFixed(2) }}%
         </p>
       </div>
       <div class="stat-card">
         <h3>总点击次数</h3>
         <p class="stat-number">{{ formatNumber(summary.totalClicks) }}</p>
-        <p class="stat-change" :class="summary.clicksChange >= 0 ? 'positive' : 'negative'">
-          {{ summary.clicksChange >= 0 ? '↑' : '↓' }} {{ Math.abs(summary.clicksChange) }}%
+        <p class="stat-change" :class="getChangeClass(summary.clicksChange)">
+          {{ getChangeSymbol(summary.clicksChange) }} {{ Math.abs(summary.clicksChange).toFixed(2) }}%
         </p>
       </div>
       <div class="stat-card">
         <h3>点击率</h3>
         <p class="stat-number">{{ summary.averageCtr.toFixed(2) }}%</p>
-        <p class="stat-change" :class="summary.ctrChange >= 0 ? 'positive' : 'negative'">
-          {{ summary.ctrChange >= 0 ? '↑' : '↓' }} {{ Math.abs(summary.ctrChange) }}%
+        <p class="stat-change" :class="getChangeClass(summary.ctrChange)">
+          {{ getChangeSymbol(summary.ctrChange) }} {{ Math.abs(summary.ctrChange).toFixed(2) }}%
         </p>
       </div>
       <div class="stat-card">
         <h3>总收入</h3>
         <p class="stat-number">¥{{ formatNumber(summary.totalRevenue) }}</p>
-        <p class="stat-change" :class="summary.revenueChange >= 0 ? 'positive' : 'negative'">
-          {{ summary.revenueChange >= 0 ? '↑' : '↓' }} {{ Math.abs(summary.revenueChange) }}%
+        <p class="stat-change" :class="getChangeClass(summary.revenueChange)">
+          {{ getChangeSymbol(summary.revenueChange) }} {{ Math.abs(summary.revenueChange).toFixed(2) }}%
         </p>
       </div>
     </div>
@@ -74,11 +83,13 @@
     <div class="charts-section">
       <div class="chart-card">
         <h3>展示与点击趋势</h3>
+        <div v-if="loading.chart" class="loading">加载中...</div>
         <div ref="chartContainer" class="chart-container"></div>
       </div>
 
       <div class="chart-card">
-        <h3>收入分布</h3>
+        <h3>{{ getDistributionChartTitle }}分布</h3>
+        <div v-if="loading.distribution" class="loading">加载中...</div>
         <div ref="pieChartContainer" class="chart-container"></div>
       </div>
     </div>
@@ -86,7 +97,8 @@
     <!-- 数据表格 -->
     <div class="table-container">
       <h3>详细数据</h3>
-      <table class="data-table">
+      <div v-if="loading.detail" class="loading">加载详细数据中...</div>
+      <table v-else class="data-table">
         <thead>
           <tr>
             <th>日期</th>
@@ -100,11 +112,11 @@
         <tbody>
           <tr v-for="item in statItems" :key="item.id">
             <td>{{ formatDate(item.date) }}</td>
-            <td>{{ item.adTitle }}</td>
+            <td>{{ item.adTitle || '未知广告' }}</td>
             <td>{{ formatNumber(item.impressionsCount) }}</td>
             <td>{{ formatNumber(item.clicksCount) }}</td>
             <td>{{ (item.ctr * 100).toFixed(2) }}%</td>
-            <td>{{ item.revenue.toFixed(2) }}</td>
+            <td>{{ (item.revenue || 0).toFixed(2) }}</td>
           </tr>
           <tr v-if="statItems.length === 0">
             <td colspan="6" class="empty-state">
@@ -118,14 +130,15 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, nextTick } from 'vue'
+import { ref, onMounted, watch, nextTick, onUnmounted, computed } from 'vue'
 import * as echarts from 'echarts'
 import apiService from '@/services/apiService'
 
 const filters = ref({
   startDate: '',
   endDate: '',
-  website: ''
+  website: '',
+  metric: 'revenue'
 })
 
 const statItems = ref([])
@@ -145,9 +158,12 @@ const pieChartContainer = ref(null)
 let chartInstance = null
 let pieChartInstance = null
 
-// 挂载时加载数据
-onMounted(() => {
-  loadStats()
+// 加载状态管理
+const loading = ref({
+  stats: false,
+  chart: false,
+  distribution: false,
+  detail: false
 })
 
 // 监控数据变化，重新绘制图表
@@ -160,6 +176,8 @@ watch(statItems, () => {
 
 const loadStats = async () => {
   try {
+    loading.value.stats = true
+    
     // 并行请求多个接口
     const [summaryResponse, trendsResponse, distributionResponse, detailResponse] = await Promise.all([
       apiService.get('/statistics/summary', {
@@ -168,6 +186,8 @@ const loadStats = async () => {
           endDate: filters.value.endDate,
           website: filters.value.website
         }
+      }).finally(() => {
+        loading.value.stats = false
       }),
       apiService.get('/statistics/trends', {
         params: {
@@ -175,20 +195,26 @@ const loadStats = async () => {
           endDate: filters.value.endDate,
           website: filters.value.website
         }
+      }).finally(() => {
+        loading.value.chart = false
       }),
       apiService.get('/statistics/distribution', {
         params: {
           startDate: filters.value.startDate,
           endDate: filters.value.endDate,
           dimension: 'website',
-          metric: 'revenue'
+          metric: filters.value.metric
         }
+      }).finally(() => {
+        loading.value.distribution = false
       }),
       apiService.get('/statistics/ads', {
         params: {
           startDate: filters.value.startDate,
           endDate: filters.value.endDate
         }
+      }).finally(() => {
+        loading.value.detail = false
       })
     ])
 
@@ -214,6 +240,33 @@ const loadStats = async () => {
   }
 }
 
+// 为图表添加resize处理
+const handleResize = () => {
+  if (chartInstance) {
+    chartInstance.resize()
+  }
+  if (pieChartInstance) {
+    pieChartInstance.resize()
+  }
+}
+
+// 组件挂载时加载数据
+onMounted(() => {
+  loadStats()
+  window.addEventListener('resize', handleResize)
+})
+
+// 组件卸载时清理资源
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize)
+  if (chartInstance) {
+    chartInstance.dispose()
+  }
+  if (pieChartInstance) {
+    pieChartInstance.dispose()
+  }
+})
+
 const handleSearch = () => {
   loadStats()
 }
@@ -224,9 +277,33 @@ const formatDate = (dateStr) => {
 }
 
 const formatNumber = (num) => {
-  if (num === null || num === undefined) return '0'
-  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+  if (num === null || num === undefined || isNaN(num)) return '0'
+  return parseFloat(num).toLocaleString()
 }
+
+// 获取变化率符号
+const getChangeSymbol = (value) => {
+  if (value > 0) return '↑'
+  if (value < 0) return '↓'
+  return '→'
+}
+
+// 获取变化率样式类
+const getChangeClass = (value) => {
+  if (value > 0) return 'positive'
+  if (value < 0) return 'negative'
+  return 'neutral'
+}
+
+// 获取分布图标题
+const getDistributionChartTitle = computed(() => {
+  const metricTitles = {
+    'revenue': '收入',
+    'impressions': '展示次数',
+    'clicks': '点击次数'
+  }
+  return metricTitles[filters.value.metric] || '收入'
+})
 
 // 渲染趋势图表
 const renderChart = () => {
@@ -276,11 +353,6 @@ const renderChart = () => {
 
   // 渲染图表
   chartInstance.setOption(option)
-
-  // 监听窗口大小变化
-  window.addEventListener('resize', () => {
-    chartInstance.resize()
-  })
 }
 
 // 渲染饼图
@@ -302,6 +374,13 @@ const renderPieChart = () => {
   }))
 
   // 图表配置
+  const metricTitles = {
+    'revenue': '收入',
+    'impressions': '展示次数',
+    'clicks': '点击次数'
+  }
+  const chartTitle = metricTitles[filters.value.metric] || '收入'
+  
   const option = {
     tooltip: {
       trigger: 'item'
@@ -312,7 +391,7 @@ const renderPieChart = () => {
     },
     series: [
       {
-        name: '收入分布',
+        name: chartTitle + '分布',
         type: 'pie',
         radius: '50%',
         data: data,
@@ -329,11 +408,6 @@ const renderPieChart = () => {
 
   // 渲染图表
   pieChartInstance.setOption(option)
-
-  // 监听窗口大小变化
-  window.addEventListener('resize', () => {
-    pieChartInstance.resize()
-  })
 }
 </script>
 
@@ -386,11 +460,6 @@ const renderPieChart = () => {
   font-size: 1rem;
 }
 
-.form-row {
-  display: flex;
-  gap: 1rem;
-}
-
 .btn {
   display: inline-block;
   padding: 0.5rem 1rem;
@@ -408,15 +477,6 @@ const renderPieChart = () => {
   cursor: not-allowed;
 }
 
-.btn-primary {
-  background-color: #007bff;
-  color: white;
-}
-
-.btn-primary:hover:not(:disabled) {
-  background-color: #0056b3;
-}
-
 .btn-secondary {
   background-color: #6c757d;
   color: white;
@@ -424,26 +484,6 @@ const renderPieChart = () => {
 
 .btn-secondary:hover:not(:disabled) {
   background-color: #545b62;
-}
-
-.btn-danger {
-  background-color: #dc3545;
-  color: white;
-}
-
-.btn-danger:hover:not(:disabled) {
-  background-color: #bd2130;
-}
-
-.btn-outline {
-  background-color: transparent;
-  border: 1px solid #007bff;
-  color: #007bff;
-}
-
-.btn-outline:hover {
-  background-color: #007bff;
-  color: white;
 }
 
 .stats-grid {
@@ -486,6 +526,10 @@ const renderPieChart = () => {
   color: #e74c3c;
 }
 
+.neutral {
+  color: #7f8c8d;
+}
+
 .charts-section {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
@@ -498,6 +542,7 @@ const renderPieChart = () => {
   border-radius: 8px;
   padding: 1.5rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  min-height: 400px;
 }
 
 .chart-card h3 {
@@ -507,6 +552,12 @@ const renderPieChart = () => {
 .chart-container {
   height: 300px;
   width: 100%;
+}
+
+.loading {
+  text-align: center;
+  padding: 2rem;
+  color: #6c757d;
 }
 
 .table-container {
