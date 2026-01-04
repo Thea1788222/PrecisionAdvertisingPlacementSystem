@@ -10,7 +10,6 @@ import com.ad.management.model.vo.StatisticTrend;
 import com.ad.management.model.vo.StatisticDistribution;
 import com.ad.management.model.vo.DashboardSummary;
 import com.ad.management.repository.AdMaterialRepository;
-import com.ad.management.repository.AdStatisticRepository;
 import com.ad.management.repository.TrafficStatisticRepository;
 import com.ad.management.repository.AdImpressionRepository;
 import com.ad.management.repository.UserBehaviorRepository;
@@ -32,8 +31,6 @@ import java.util.stream.Collectors;
 @Service
 public class StatisticServiceImpl implements StatisticService {
 
-    @Resource
-    private AdStatisticRepository adStatisticRepository;
     @Resource
     private AdMaterialRepository adMaterialRepository;
     @Resource

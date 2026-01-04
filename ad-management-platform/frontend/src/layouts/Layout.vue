@@ -2,12 +2,12 @@
   <div class="app-wrapper" :class="{hideSidebar: !sidebar.opened}">
     <!-- 侧边栏 -->
     <Sidebar class="sidebar-container" />
-    
+
     <!-- 主容器 -->
     <div class="main-container">
       <!-- 导航栏 -->
       <Navbar />
-      
+
       <!-- 主内容区 -->
       <AppMain />
     </div>
@@ -41,9 +41,9 @@ const sidebar = useSidebarStore()
 
 .hideSidebar {
   .sidebar-container {
-    width: 54px;
+    width: 50px;
   }
-  
+
   .main-container {
     margin-left: 54px;
   }

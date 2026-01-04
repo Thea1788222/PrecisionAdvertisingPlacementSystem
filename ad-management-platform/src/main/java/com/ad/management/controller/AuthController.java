@@ -49,6 +49,7 @@ public class AuthController {
      * @param loginRequest 登录请求对象
      * @return 登录成功的用户对象和JWT token
      */
+    // TODO: 登录后一个小时就过期了，没有刷新token的机制，后续可以考虑增加刷新token的机制
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
         try {

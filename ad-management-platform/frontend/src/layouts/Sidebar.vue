@@ -1,9 +1,10 @@
 <template>
   <div class="sidebar">
     <div class="logo">
-      <h2>广告管理系统</h2>
+      <img src="/adlogo.svg" alt="广告管理系统" class="logo-icon" />
+      <h2 class="logo-text">广告管理系统</h2>
     </div>
-    
+
     <el-menu
       :default-active="activeMenu"
       class="sidebar-menu"
@@ -16,22 +17,22 @@
         <el-icon><House /></el-icon>
         <span>仪表板</span>
       </el-menu-item>
-      
+
       <el-menu-item index="/materials">
         <el-icon><Document /></el-icon>
         <span>广告素材</span>
       </el-menu-item>
-      
+
       <el-menu-item index="/positions">
         <el-icon><Location /></el-icon>
         <span>广告位</span>
       </el-menu-item>
-      
+
       <el-menu-item index="/advertisers">
         <el-icon><User /></el-icon>
         <span>广告商</span>
       </el-menu-item>
-      
+
       <el-menu-item index="/statistics">
         <el-icon><DataAnalysis /></el-icon>
         <span>数据统计</span>
@@ -61,7 +62,7 @@ const activeMenu = computed(() => {
 .sidebar {
   background-color: #304156;
   height: 100%;
-  width: 210px;
+  width: 180px;
   transition: width 0.28s;
   position: relative;
   overflow: hidden;
@@ -71,9 +72,26 @@ const activeMenu = computed(() => {
   height: 50px;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
+  padding: 0 15px;
   background-color: #2b3a4d;
   color: #fff;
+  overflow: hidden;
+}
+
+.logo-icon {
+  width: 24px;
+  height: 24px;
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+.logo-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0;
+  font-size: 14px;
 }
 
 .sidebar-menu {
