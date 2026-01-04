@@ -5,8 +5,6 @@ import com.ad.management.model.entity.AdStatistic;
 import com.ad.management.model.entity.TrafficStatisticEntity;
 import com.ad.management.model.entity.AdImpression;
 import com.ad.management.model.entity.UserBehavior;
-import com.ad.management.model.entity.AdPosition;
-import com.ad.management.model.entity.Advertiser;
 import com.ad.management.model.vo.StatisticSummary;
 import com.ad.management.model.vo.StatisticTrend;
 import com.ad.management.model.vo.StatisticDistribution;
@@ -19,41 +17,35 @@ import com.ad.management.repository.UserBehaviorRepository;
 import com.ad.management.repository.AdPositionRepository;
 import com.ad.management.repository.AdvertiserRepository;
 import com.ad.management.service.StatisticService;
+import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 @Service
 public class StatisticServiceImpl implements StatisticService {
-    
-    private final AdStatisticRepository adStatisticRepository;
-    private final AdMaterialRepository adMaterialRepository;
-    private final TrafficStatisticRepository trafficStatisticRepository;
-    private final AdImpressionRepository adImpressionRepository;
-    private final UserBehaviorRepository userBehaviorRepository;
-    private final AdPositionRepository adPositionRepository;
-    private final AdvertiserRepository advertiserRepository;
-    
-    public StatisticServiceImpl(AdStatisticRepository adStatisticRepository, 
-                               AdMaterialRepository adMaterialRepository,
-                               TrafficStatisticRepository trafficStatisticRepository,
-                               AdImpressionRepository adImpressionRepository,
-                               UserBehaviorRepository userBehaviorRepository,
-                               AdPositionRepository adPositionRepository,
-                               AdvertiserRepository advertiserRepository) {
-        this.adStatisticRepository = adStatisticRepository;
-        this.adMaterialRepository = adMaterialRepository;
-        this.trafficStatisticRepository = trafficStatisticRepository;
-        this.adImpressionRepository = adImpressionRepository;
-        this.userBehaviorRepository = userBehaviorRepository;
-        this.adPositionRepository = adPositionRepository;
-        this.advertiserRepository = advertiserRepository;
-    }
+
+    @Resource
+    private AdStatisticRepository adStatisticRepository;
+    @Resource
+    private AdMaterialRepository adMaterialRepository;
+    @Resource
+    private TrafficStatisticRepository trafficStatisticRepository;
+    @Resource
+    private AdImpressionRepository adImpressionRepository;
+    @Resource
+    private UserBehaviorRepository userBehaviorRepository;
+    @Resource
+    private AdPositionRepository adPositionRepository;
+    @Resource
+    private AdvertiserRepository advertiserRepository;
     
     /**
      * 获取广告统计信息
@@ -66,8 +58,8 @@ public class StatisticServiceImpl implements StatisticService {
     @Override
     public List<AdStatistic> getAdStatistics(Long adId, LocalDate startDate, LocalDate endDate) {
         // 从ad_impressions表获取数据
-        LocalDateTime startTime = LocalDateTime.of(startDate, LocalTime.MIN);
-        LocalDateTime endTime = LocalDateTime.of(endDate, LocalTime.MAX);
+        LocalDateTime startTime = startDate != null ? LocalDateTime.of(startDate, LocalTime.MIN) : null;
+        LocalDateTime endTime = endDate != null ? LocalDateTime.of(endDate, LocalTime.MAX) : null;
         List<AdImpression> impressions = adImpressionRepository.findByAdIdAndDateRange(adId, startTime, endTime);
         
         // 按广告ID和日期分组统计数据
@@ -77,7 +69,7 @@ public class StatisticServiceImpl implements StatisticService {
             Long currentAdId = impression.getAdId();
             LocalDate impressionDate = impression.getCreatedAt().toLocalDate();
             
-            statsMap.computeIfAbsent(currentAdId, k -> new HashMap<>())
+            statsMap.computeIfAbsent(currentAdId, k -> new TreeMap<>())
                     .computeIfAbsent(impressionDate, d -> createNewAdStatistic(currentAdId, d));
             
             AdStatistic stat = statsMap.get(currentAdId).get(impressionDate);
@@ -170,8 +162,8 @@ public class StatisticServiceImpl implements StatisticService {
      */
     @Override
     public List<com.ad.management.model.vo.TrafficStatistic> getTrafficStatistics(String website, LocalDate startDate, LocalDate endDate) {
-        LocalDateTime startTime = LocalDateTime.of(startDate, LocalTime.MIN);
-        LocalDateTime endTime = LocalDateTime.of(endDate, LocalTime.MAX);
+        LocalDateTime startTime = startDate != null ? LocalDateTime.of(startDate, LocalTime.MIN) : null;
+        LocalDateTime endTime = endDate != null ? LocalDateTime.of(endDate, LocalTime.MAX) : null;
         List<TrafficStatisticEntity> entities = trafficStatisticRepository.findByWebsiteAndDateRange(website, startTime, endTime);
         
         // Convert entity objects to DTO objects
@@ -197,8 +189,8 @@ public class StatisticServiceImpl implements StatisticService {
     @Override
     public StatisticSummary getStatisticSummary(LocalDate startDate, LocalDate endDate, String website) {
         // 从ad_impressions表获取统计数据
-        LocalDateTime startTime = LocalDateTime.of(startDate, LocalTime.MIN);
-        LocalDateTime endTime = LocalDateTime.of(endDate, LocalTime.MAX);
+        LocalDateTime startTime = startDate != null ? LocalDateTime.of(startDate, LocalTime.MIN) : null;
+        LocalDateTime endTime = endDate != null ? LocalDateTime.of(endDate, LocalTime.MAX) : null;
         List<AdImpression> impressions = adImpressionRepository.findByAdIdAndDateRange(null, startTime, endTime);
         
         // 计算总览数据
@@ -241,12 +233,12 @@ public class StatisticServiceImpl implements StatisticService {
     @Override
     public List<StatisticTrend> getStatisticTrends(LocalDate startDate, LocalDate endDate, String website) {
         // 从ad_impressions表获取数据
-        LocalDateTime startTime = LocalDateTime.of(startDate, LocalTime.MIN);
-        LocalDateTime endTime = LocalDateTime.of(endDate, LocalTime.MAX);
+        LocalDateTime startTime = startDate != null ? LocalDateTime.of(startDate, LocalTime.MIN) : null;
+        LocalDateTime endTime = endDate != null ? LocalDateTime.of(endDate, LocalTime.MAX) : null;
         List<AdImpression> impressions = adImpressionRepository.findByAdIdAndDateRange(null, startTime, endTime);
         
         // 按日期分组并聚合数据
-        Map<LocalDate, StatisticTrend> trendMap = new HashMap<>();
+        Map<LocalDate, StatisticTrend> trendMap = new TreeMap<>();
         
         for (AdImpression impression : impressions) {
             LocalDate date = impression.getCreatedAt().toLocalDate();
@@ -264,7 +256,7 @@ public class StatisticServiceImpl implements StatisticService {
             }
         }
         
-        return trendMap.values().stream().collect(Collectors.toList());
+        return new ArrayList<>(trendMap.values());
     }
     
     /**
@@ -279,8 +271,8 @@ public class StatisticServiceImpl implements StatisticService {
     @Override
     public List<StatisticDistribution> getStatisticDistribution(LocalDate startDate, LocalDate endDate, String dimension, String metric) {
         // 从ad_impressions表获取数据
-        LocalDateTime startTime = LocalDateTime.of(startDate, LocalTime.MIN);
-        LocalDateTime endTime = LocalDateTime.of(endDate, LocalTime.MAX);
+        LocalDateTime startTime = startDate != null ? LocalDateTime.of(startDate, LocalTime.MIN) : null;
+        LocalDateTime endTime = endDate != null ? LocalDateTime.of(endDate, LocalTime.MAX) : null;
         List<AdImpression> impressions = adImpressionRepository.findByAdIdAndDateRange(null, startTime, endTime);
         
         // 按网站进行分布统计
