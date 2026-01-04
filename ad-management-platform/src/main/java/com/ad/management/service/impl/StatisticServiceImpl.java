@@ -213,6 +213,46 @@ public class StatisticServiceImpl implements StatisticService {
         
         double averageCtr = totalImpressions > 0 ? (double) totalClicks / totalImpressions : 0.0;
         
+        // 计算变化率（与前一个时间段对比）
+        double impressionsChange = 0.0;
+        double clicksChange = 0.0;
+        double revenueChange = 0.0;
+        double ctrChange = 0.0;
+        
+        if (startDate != null && endDate != null) {
+            // 计算前一个时间段的数据用于对比
+            long daysDiff = endDate.toEpochDay() - startDate.toEpochDay();
+            LocalDate prevStartDate = startDate.minusDays(daysDiff + 1);
+            LocalDate prevEndDate = startDate.minusDays(1);
+            
+            LocalDateTime prevStartTime = LocalDateTime.of(prevStartDate, LocalTime.MIN);
+            LocalDateTime prevEndTime = LocalDateTime.of(prevEndDate, LocalTime.MAX);
+            
+            List<AdImpression> prevImpressions = adImpressionRepository.findByAdIdAndDateRange(null, website, prevStartTime, prevEndTime);
+            
+            long prevTotalImpressions = prevImpressions.size();
+            long prevTotalClicks = prevImpressions.stream()
+                    .filter(impression -> impression.getIsClicked() != null && impression.getIsClicked() == 1)
+                    .count();
+            
+            double prevTotalRevenue = prevImpressions.stream()
+                    .filter(impression -> impression.getBidPrice() != null)
+                    .mapToDouble(impression -> impression.getBidPrice().doubleValue())
+                    .sum();
+            
+            double prevAverageCtr = prevTotalImpressions > 0 ? (double) prevTotalClicks / prevTotalImpressions : 0.0;
+            
+            // 计算变化率
+            impressionsChange = prevTotalImpressions != 0 ? 
+                ((double) (totalImpressions - prevTotalImpressions) / prevTotalImpressions) * 100 : 0.0;
+            clicksChange = prevTotalClicks != 0 ? 
+                ((double) (totalClicks - prevTotalClicks) / prevTotalClicks) * 100 : 0.0;
+            revenueChange = prevTotalRevenue != 0 ? 
+                ((totalRevenue - prevTotalRevenue) / prevTotalRevenue) * 100 : 0.0;
+            ctrChange = prevAverageCtr != 0 ? 
+                ((averageCtr * 100 - prevAverageCtr * 100) / (prevAverageCtr * 100)) * 100 : 0.0;
+        }
+        
         // 创建统计摘要对象
         StatisticSummary summary = new StatisticSummary();
         summary.setTotalImpressions(totalImpressions);
@@ -220,11 +260,10 @@ public class StatisticServiceImpl implements StatisticService {
         summary.setTotalRevenue(totalRevenue);
         summary.setAverageCtr(averageCtr * 100); // 转换为百分比
         
-        // 简化变化率计算（实际应用中应该比较两个时间段的数据）
-        summary.setImpressionsChange(0.0);
-        summary.setClicksChange(0.0);
-        summary.setRevenueChange(0.0);
-        summary.setCtrChange(0.0);
+        summary.setImpressionsChange(impressionsChange);
+        summary.setClicksChange(clicksChange);
+        summary.setRevenueChange(revenueChange);
+        summary.setCtrChange(ctrChange);
         
         return summary;
     }
