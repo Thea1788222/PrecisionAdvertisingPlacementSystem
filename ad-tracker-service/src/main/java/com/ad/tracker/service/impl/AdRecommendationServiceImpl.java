@@ -75,7 +75,7 @@ public class AdRecommendationServiceImpl implements AdRecommendationService {
         List<AdMaterial> result = new ArrayList<>();
 
         // 计算按权重推荐的数量（80%）
-        int weightBasedCount = (int) (count * 0.8);
+        int weightBasedCount = (int) Math.ceil(count * 0.8);
         
         // 按兴趣权重推荐（精准投放）
         List<AdMaterial> weightBasedAds = getPrecisionRecommendations(userFingerprint, userProfile, type, weightBasedCount, usedAdIds);
@@ -99,8 +99,8 @@ public class AdRecommendationServiceImpl implements AdRecommendationService {
         List<AdMaterial> result = new ArrayList<>();
         
         // 计算各部分推荐数量
-        int topWeightCount = (int) (count * 0.3);      // 权重最高30%
-        int bottomWeightCount = (int) (count * 0.2);   // 权重最低20%
+        int topWeightCount = (int) Math.ceil(count * 0.3);      // 权重最高30%
+        int bottomWeightCount = (int) Math.ceil(count * 0.2);   // 权重最低20%
         
         // 获取用户兴趣权重
         Map<String, Double> interests = userProfileService.parseInterests(userProfile);
