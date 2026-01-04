@@ -2,114 +2,45 @@
   <div class="materials-page">
     <div class="page-header">
       <h1>广告素材管理</h1>
-      <button class="btn btn-primary" @click="openCreateModal">
-        新建素材
-      </button>
+      <div class="header-actions">
+        <button class="btn btn-primary" @click="openCreateModal" v-if="!showBatchActions">
+          新建素材
+        </button>
+        <div v-else class="batch-actions">
+          <span class="batch-count">{{ selectedMaterials.length }} 项已选中</span>
+          <button class="btn btn-danger" @click="batchDelete" :disabled="selectedMaterials.length === 0">
+            批量删除
+          </button>
+          <button class="btn btn-outline" @click="toggleBatchMode(false)">
+            取消
+          </button>
+        </div>
+        <button class="btn btn-secondary" @click="toggleBatchMode(!showBatchActions)">
+          {{ showBatchActions ? '取消批量操作' : '批量操作' }}
+        </button>
+      </div>
     </div>
 
     <!-- 筛选条件 -->
-    <div class="filter-section">
-      <div class="filter-row">
-        <div class="form-group">
-          <label>广告商</label>
-          <select v-model="filters.advertiserId">
-            <option value="">全部广告商</option>
-            <option v-for="advertiser in advertisers" :key="advertiser.id" :value="advertiser.id">
-              {{ advertiser.name }}
-            </option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>类型</label>
-          <select v-model="filters.type">
-            <option value="">全部类型</option>
-            <option value="banner">图片</option>
-            <option value="video">视频</option>
-            <option value="native">原生(图片)</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>分类</label>
-          <select v-model="filters.category">
-            <option value="">全部分类</option>
-            <option value="electronics">数码电子</option>
-            <option value="fashion">时尚</option>
-            <option value="sports">运动</option>
-            <option value="home">家居</option>
-            <option value="food">美食</option>
-            <option value="travel">旅游</option>
-            <option value="education">教育</option>
-            <option value="finance">金融</option>
-            <option value="health">健康</option>
-            <option value="beauty">美妆</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>状态</label>
-          <select v-model="filters.status">
-            <option value="">全部状态</option>
-            <option value="1">启用</option>
-            <option value="0">禁用</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>关键词</label>
-          <input
-            v-model="filters.keyword"
-            type="text"
-            placeholder="请输入关键词"
-            @keyup.enter="handleSearch"
-          />
-        </div>
-        <div class="form-group">
-          <button class="btn btn-secondary" @click="handleSearch">
-            搜索
-          </button>
-        </div>
-      </div>
-    </div>
+    <MaterialFilter 
+      v-model:filters="filters"
+      :advertisers="advertisers"
+      @search="handleSearch"
+      @reset="handleReset"
+    />
 
     <!-- 素材卡片列表 -->
     <div class="materials-grid" v-loading="loading">
-      <div
-        class="material-card"
+      <MaterialCard
         v-for="material in materials"
         :key="material.id"
-        @click="viewMaterialDetail(material)"
-      >
-        <div class="card-preview">
-          <div v-if="(material.type === 'banner' || material.type === 'native') && material.imageUrl" class="image-preview">
-            <img :src="material.imageUrl" :alt="material.title" />
-          </div>
-          <div v-else-if="material.type === 'video' && material.videoUrl" class="video-preview">
-            <video :src="material.videoUrl" muted></video>
-            <div class="play-icon">▶</div>
-          </div>
-          <div v-else class="no-preview">
-            <span>{{ getMaterialTypeText(material.type) }}</span>
-          </div>
-        </div>
-        <div class="card-content">
-          <h3 class="material-title">{{ material.title }}</h3>
-          <div class="material-meta">
-            <span class="meta-item">
-              <i class="icon-advertiser"></i>
-              {{ getAdvertiserName(material.advertiserId) }}
-            </span>
-            <span class="meta-item">
-              <i class="icon-category"></i>
-              {{ getCategoryText(material.category) }}
-            </span>
-          </div>
-          <div class="material-footer">
-            <span :class="['status-badge', { 'status-active': material.status === 1 }]">
-              {{ material.status === 1 ? '启用' : '禁用' }}
-            </span>
-            <span class="bid-price">¥{{ material.bidPrice }}</span>
-          </div>
-        </div>
-      </div>
-
+        :material="material"
+        :advertisers="advertisers"
+        :show-checkbox="showBatchActions"
+        :is-selected="selectedMaterials.includes(material.id)"
+        @view-detail="viewMaterialDetail"
+        @toggle-selection="toggleMaterialSelection"
+      />
       <div v-if="materials.length === 0 && !loading" class="empty-state">
         <p>暂无广告素材</p>
         <button class="btn btn-primary" @click="openCreateModal">新建素材</button>
@@ -117,7 +48,7 @@
     </div>
 
     <!-- 分页 -->
-    <div class="pagination" v-if="totalPages > 1">
+    <div class="pagination" v-if="totalPages > 0">
       <button
         class="btn btn-pagination"
         :disabled="currentPage === 1"
@@ -126,7 +57,7 @@
         上一页
       </button>
       <span class="page-info">
-        第 {{ currentPage }} 页，共 {{ totalPages }} 页
+        第 {{ currentPage }} 页，共 {{ totalPages }} 页 ({{ totalElements }} 条记录)
       </span>
       <button
         class="btn btn-pagination"
@@ -282,6 +213,8 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import apiService from '@/services/apiService'
+import MaterialFilter from '@/components/MaterialFilter.vue'
+import MaterialCard from '@/components/MaterialCard.vue'
 
 const materials = ref([])
 const advertisers = ref([])
@@ -312,6 +245,10 @@ const filters = ref({
   status: '',
   keyword: ''
 })
+
+// 批量操作相关
+const showBatchActions = ref(false)
+const selectedMaterials = ref([])
 
 const currentMaterial = ref({
   id: null,
@@ -384,6 +321,12 @@ const handleSearch = () => {
   loadMaterials()
 }
 
+// 重置功能
+const handleReset = () => {
+  currentPage.value = 1
+  loadMaterials()
+}
+
 // 分页功能
 const changePage = (page) => {
   currentPage.value = page
@@ -428,6 +371,46 @@ const deleteMaterial = async (id) => {
       console.error('删除广告素材失败:', error)
       alert('删除失败: ' + (error.response?.data?.message || '未知错误'))
     }
+  }
+}
+
+// 批量删除广告素材
+const batchDelete = async () => {
+  if (selectedMaterials.value.length === 0) return;
+  
+  if (confirm(`确定要删除选中的 ${selectedMaterials.value.length} 个广告素材吗？`)) {
+    try {
+      // 批量删除请求（假设后端支持批量删除）
+      const promises = selectedMaterials.value.map(id => apiService.delete(`/materials/${id}`))
+      await Promise.all(promises)
+      
+      // 清空选中项
+      selectedMaterials.value = []
+      
+      // 重新加载数据
+      loadMaterials()
+    } catch (error) {
+      console.error('批量删除广告素材失败:', error)
+      alert('批量删除失败: ' + (error.response?.data?.message || '未知错误'))
+    }
+  }
+}
+
+// 切换批量操作模式
+const toggleBatchMode = (show) => {
+  showBatchActions.value = show
+  if (!show) {
+    selectedMaterials.value = []
+  }
+}
+
+// 切换单个素材的选中状态
+const toggleMaterialSelection = (id) => {
+  const index = selectedMaterials.value.indexOf(id)
+  if (index > -1) {
+    selectedMaterials.value.splice(index, 1)
+  } else {
+    selectedMaterials.value.push(id)
   }
 }
 
@@ -622,37 +605,6 @@ const formatFileSize = (bytes) => {
   const i = Math.floor(Math.log(bytes) / Math.log(k))
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
 }
-
-// 工具方法
-const getAdvertiserName = (id) => {
-  const advertiser = advertisers.value.find(item => item.id === id)
-  return advertiser ? advertiser.name : '未知广告商'
-}
-
-const getCategoryText = (category) => {
-  const categories = {
-    electronics: '数码电子',
-    fashion: '时尚',
-    sports: '运动',
-    home: '家居',
-    food: '美食',
-    travel: '旅游',
-    education: '教育',
-    finance: '金融',
-    health: '健康',
-    beauty: '美妆'
-  }
-  return categories[category] || category
-}
-
-const getMaterialTypeText = (type) => {
-  const types = {
-    banner: '图片',
-    video: '视频',
-    native: '原生'
-  }
-  return types[type] || type
-}
 </script>
 
 <style scoped>
@@ -675,123 +627,28 @@ const getMaterialTypeText = (type) => {
   color: #333;
 }
 
-.filter-section {
-  background: #f8f9fa;
-  padding: 1.5rem;
-  border-radius: 4px;
-  margin-bottom: 2rem;
-}
-
-.filter-row {
+.header-actions {
   display: flex;
-  flex-wrap: wrap;
+  align-items: center;
   gap: 1rem;
-  align-items: end;
 }
 
-.form-group {
+.batch-actions {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
 }
 
-.form-group label {
-  margin-bottom: 0.5rem;
+.batch-count {
   font-weight: 500;
-  color: #555;
-}
-
-.form-group input,
-.form-group select {
-  padding: 0.5rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 1rem;
-}
-
-.form-row {
-  display: flex;
-  gap: 1rem;
-}
-
-.btn {
-  display: inline-block;
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 1rem;
-  text-align: center;
-  text-decoration: none;
-  transition: all 0.3s ease;
-}
-
-.btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.btn-primary {
-  background-color: #007bff;
-  color: white;
-}
-
-.btn-primary:hover:not(:disabled) {
-  background-color: #0056b3;
-}
-
-.btn-secondary {
-  background-color: #6c757d;
-  color: white;
-}
-
-.btn-secondary:hover:not(:disabled) {
-  background-color: #545b62;
-}
-
-.btn-danger {
-  background-color: #dc3545;
-  color: white;
-}
-
-.btn-danger:hover:not(:disabled) {
-  background-color: #bd2130;
-}
-
-.btn-outline {
-  background-color: transparent;
-  border: 1px solid #007bff;
   color: #007bff;
 }
 
-.btn-outline:hover {
-  background-color: #007bff;
-  color: white;
-}
-
-.btn-sm {
-  padding: 0.25rem 0.5rem;
-  font-size: 0.875rem;
-}
-
-.btn-pagination {
-  padding: 0.5rem 1rem;
-}
-
-.btn-pagination:disabled {
-  background-color: #ccc;
-  cursor: not-allowed;
-}
-
-.pagination {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 1rem;
-  margin-top: 2rem;
-}
-
-.page-info {
-  font-weight: 500;
+.materials-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
 }
 
 .empty-state {
@@ -859,131 +716,107 @@ const getMaterialTypeText = (type) => {
   margin-top: 2rem;
 }
 
-.status-badge {
-  padding: 0.25rem 0.5rem;
+.btn {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border: none;
   border-radius: 4px;
-  font-size: 0.875rem;
-  background-color: #f8f9fa;
-  color: #6c757d;
-}
-
-.status-active {
-  background-color: #d4edda;
-  color: #155724;
-}
-
-/* 新增的样式 */
-
-.materials-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1.5rem;
-}
-
-.material-card {
-  border: 1px solid #eee;
-  border-radius: 8px;
-  overflow: hidden;
-  transition: all 0.3s ease;
   cursor: pointer;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  font-size: 1rem;
+  text-align: center;
+  text-decoration: none;
+  transition: all 0.3s ease;
 }
 
-.material-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
-.card-preview {
-  height: 180px;
-  overflow: hidden;
-  position: relative;
-  background-color: #f8f9fa;
-}
-
-.image-preview img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.video-preview {
-  position: relative;
-  width: 100%;
-  height: 100%;
-}
-
-.video-preview video {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.play-icon {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 2rem;
+.btn-primary {
+  background-color: #007bff;
   color: white;
-  background-color: rgba(0, 0, 0, 0.7);
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
-.no-preview {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
+.btn-primary:hover:not(:disabled) {
+  background-color: #0056b3;
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  color: white;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: #545b62;
+}
+
+.btn-danger {
+  background-color: #dc3545;
+  color: white;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background-color: #bd2130;
+}
+
+.btn-outline {
+  background-color: transparent;
+  border: 1px solid #6c757d;
   color: #6c757d;
-  font-size: 0.875rem;
 }
 
-.card-content {
-  padding: 1rem;
+.btn-outline:hover {
+  background-color: #6c757d;
+  color: white;
 }
 
-.material-title {
-  margin: 0 0 0.5rem 0;
-  font-size: 1.1rem;
+.btn-pagination {
+  padding: 0.5rem 1rem;
+}
+
+.btn-pagination:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+}
+
+.page-info {
   font-weight: 500;
-  color: #333;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
-.material-meta {
+.form-group {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
   margin-bottom: 1rem;
-  font-size: 0.875rem;
-  color: #6c757d;
 }
 
-.meta-item {
+.form-group label {
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #555;
+}
+
+.form-group input,
+.form-group select {
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.form-row {
   display: flex;
-  align-items: center;
-  gap: 0.25rem;
+  gap: 1rem;
 }
 
-.material-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.bid-price {
-  font-weight: 600;
-  color: #28a745;
-}
-
+/* 上传区域样式 */
 .upload-area {
   border: 2px dashed #ddd;
   border-radius: 4px;
@@ -1136,6 +969,19 @@ const getMaterialTypeText = (type) => {
   .form-row {
     flex-direction: column;
     gap: 0;
+  }
+  
+  .pagination {
+    flex-wrap: wrap;
+  }
+  
+  .header-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .batch-actions {
+    flex-wrap: wrap;
   }
 }
 </style>
