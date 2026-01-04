@@ -106,7 +106,9 @@ const handleRegister = async () => {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background-color: #f5f5f5;
+  background-image: url('@/assets/background.jpg');
+  background-size: cover;
+  background-position: center;
 }
 
 .register-box {

@@ -63,12 +63,15 @@ public class AuthController {
                 return ResponseEntity.badRequest().body(errorResponse);
             }
             
-            // 生成JWT token
-            String token = jwtUtil.generateToken(loginRequest.getUsername());
+            // 生成JWT token，根据rememberMe参数决定过期时间
+            boolean rememberMe = loginRequest.isRememberMe();
+            String token = jwtUtil.generateToken(loginRequest.getUsername(), rememberMe);
             
             AuthResponse authResponse = new AuthResponse();
             authResponse.setToken(token);
-            authResponse.setExpiresIn(jwtUtil.getExpirationTime());
+            // 设置过期时间
+            long expiration = rememberMe ? jwtUtil.getRememberMeExpiration() : jwtUtil.getDefaultExpiration();
+            authResponse.setExpiresIn(expiration);
             
             user.setPassword(null); // 清除密码
             authResponse.setUser(user);

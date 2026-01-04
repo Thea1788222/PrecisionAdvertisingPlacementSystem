@@ -23,6 +23,15 @@
             required
           />
         </div>
+        <div class="form-group checkbox-group">
+          <label class="checkbox-label">
+            <input
+              v-model="loginForm.rememberMe"
+              type="checkbox"
+            />
+            记住我
+          </label>
+        </div>
         <div class="form-actions">
           <button type="submit" :disabled="loading">
             {{ loading ? '登录中...' : '登录' }}
@@ -49,7 +58,8 @@ const authStore = useAuthStore()
 
 const loginForm = ref({
   username: '',
-  password: ''
+  password: '',
+  rememberMe: false
 })
 
 const loading = ref(false)
@@ -76,7 +86,9 @@ const handleLogin = async () => {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background-color: #f5f5f5;
+  background-image: url('@/assets/background.jpg');
+  background-size: cover;
+  background-position: center;
 }
 
 .login-box {
@@ -116,6 +128,24 @@ const handleLogin = async () => {
 .form-group input:focus {
   outline: none;
   border-color: #409eff;
+}
+
+.checkbox-group {
+  display: flex;
+  align-items: center;
+}
+
+.checkbox-group .checkbox-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.checkbox-group input[type="checkbox"] {
+  margin-right: 0.5rem;
+  width: auto;
 }
 
 .form-actions {
