@@ -55,9 +55,10 @@ public class StatisticServiceImpl implements StatisticService {
      * @param endDate   结束日期
      * @return 广告统计信息列表
      */
+    // TODO: 重新思考后端返回数据形式或前端展示方式
     @Override
     public List<AdStatistic> getAdStatistics(Long adId, LocalDate startDate, LocalDate endDate) {
-        // 从ad_impressions表获取数据
+        // 从ad_impressions表获取指定广告id和日期范围内的广告数据
         LocalDateTime startTime = startDate != null ? LocalDateTime.of(startDate, LocalTime.MIN) : null;
         LocalDateTime endTime = endDate != null ? LocalDateTime.of(endDate, LocalTime.MAX) : null;
         List<AdImpression> impressions = adImpressionRepository.findByAdIdAndDateRange(adId, startTime, endTime);
@@ -68,7 +69,8 @@ public class StatisticServiceImpl implements StatisticService {
         for (AdImpression impression : impressions) {
             Long currentAdId = impression.getAdId();
             LocalDate impressionDate = impression.getCreatedAt().toLocalDate();
-            
+
+            // 创建新的统计对象（如果不存在）
             statsMap.computeIfAbsent(currentAdId, k -> new TreeMap<>())
                     .computeIfAbsent(impressionDate, d -> createNewAdStatistic(currentAdId, d));
             
@@ -84,7 +86,7 @@ public class StatisticServiceImpl implements StatisticService {
         }
         
         // 计算转化数据（从user_behaviors表）
-        List<UserBehavior> behaviors = userBehaviorRepository.findAdClickBehaviorsByAdIdAndDateRange(adId, startDate, endDate);
+        List<UserBehavior> behaviors = userBehaviorRepository.findAdClickBehaviorsByAdIdAndDateRange(adId, startTime, endTime);
         for (UserBehavior behavior : behaviors) {
             String targetId = behavior.getTargetId();
             if (targetId.startsWith("ad_")) {
@@ -139,6 +141,13 @@ public class StatisticServiceImpl implements StatisticService {
         return result;
     }
 
+    /**
+     * 创建新的广告统计对象
+     *
+     * @param adId   广告ID
+     * @param date   日期
+     * @return 新的广告统计对象
+     */
     private AdStatistic createNewAdStatistic(Long adId, LocalDate date) {
         AdStatistic stat = new AdStatistic();
         stat.setAdId(adId);
@@ -186,6 +195,7 @@ public class StatisticServiceImpl implements StatisticService {
      * @param website   网站名称
      * @return 统计摘要信息
      */
+    // TODO: 按网站查询是否正确
     @Override
     public StatisticSummary getStatisticSummary(LocalDate startDate, LocalDate endDate, String website) {
         // 从ad_impressions表获取统计数据
@@ -230,6 +240,7 @@ public class StatisticServiceImpl implements StatisticService {
      * @param website   网站名称
      * @return 趋势统计数据列表
      */
+    // TODO: 按网站查询是否正确
     @Override
     public List<StatisticTrend> getStatisticTrends(LocalDate startDate, LocalDate endDate, String website) {
         // 从ad_impressions表获取数据
@@ -268,6 +279,7 @@ public class StatisticServiceImpl implements StatisticService {
      * @param metric    指标
      * @return 分布统计数据列表
      */
+    // TODO: 前端没有相关选择逻辑，是否需要按维度查询
     @Override
     public List<StatisticDistribution> getStatisticDistribution(LocalDate startDate, LocalDate endDate, String dimension, String metric) {
         // 从ad_impressions表获取数据

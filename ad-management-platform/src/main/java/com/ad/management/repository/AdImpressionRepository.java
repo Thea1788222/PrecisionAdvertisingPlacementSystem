@@ -11,7 +11,14 @@ import java.util.List;
 
 @Repository
 public interface AdImpressionRepository extends JpaRepository<AdImpression, Long> {
-    
+
+    /**
+     * 根据广告id和日期范围查询广告展示数据
+     * @param adId 广告id
+     * @param startDate 开始日期时间
+     * @param endDate 结束日期时间
+     * @return 广告展示数据列表
+     */
     @Query("SELECT ai FROM AdImpression ai WHERE " +
            "(:adId IS NULL OR ai.adId = :adId) AND " +
            "(:startDate IS NULL OR ai.createdAt >= :startDate) AND " +
@@ -21,7 +28,14 @@ public interface AdImpressionRepository extends JpaRepository<AdImpression, Long
         @Param("startDate") LocalDateTime startDate,
         @Param("endDate") LocalDateTime endDate
     );
-    
+
+    /**
+     * 根据广告id和日期范围统计广告点击次数
+     * @param adId 广告id
+     * @param startDate 开始日期时间
+     * @param endDate 结束日期时间
+     * @return 广告点击次数
+     */
     @Query("SELECT COUNT(ai) FROM AdImpression ai WHERE " +
            "(:adId IS NULL OR ai.adId = :adId) AND " +
            "ai.isClicked = 1 AND " +
@@ -32,7 +46,14 @@ public interface AdImpressionRepository extends JpaRepository<AdImpression, Long
         @Param("startDate") LocalDate startDate,
         @Param("endDate") LocalDate endDate
     );
-    
+
+    /**
+     * 根据广告id和日期范围统计广告展示次数
+     * @param adId 广告id
+     * @param startDate 开始日期时间
+     * @param endDate 结束日期时间
+     * @return 广告展示次数
+     */
     @Query("SELECT COUNT(ai) FROM AdImpression ai WHERE " +
            "(:adId IS NULL OR ai.adId = :adId) AND " +
            "(:startDate IS NULL OR ai.createdAt >= :startDate) AND " +
