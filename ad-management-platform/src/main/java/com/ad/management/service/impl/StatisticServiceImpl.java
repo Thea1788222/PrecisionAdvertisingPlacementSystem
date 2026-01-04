@@ -52,13 +52,12 @@ public class StatisticServiceImpl implements StatisticService {
      * @param endDate   结束日期
      * @return 广告统计信息列表
      */
-    // TODO: 重新思考后端返回数据形式或前端展示方式
     @Override
     public List<AdStatistic> getAdStatistics(Long adId, LocalDate startDate, LocalDate endDate) {
         // 从ad_impressions表获取指定广告id和日期范围内的广告数据
         LocalDateTime startTime = startDate != null ? LocalDateTime.of(startDate, LocalTime.MIN) : null;
         LocalDateTime endTime = endDate != null ? LocalDateTime.of(endDate, LocalTime.MAX) : null;
-        List<AdImpression> impressions = adImpressionRepository.findByAdIdAndDateRange(adId, startTime, endTime);
+        List<AdImpression> impressions = adImpressionRepository.findByAdIdAndDateRange(adId, null, startTime, endTime);
         
         // 按广告ID和日期分组统计数据
         Map<Long, Map<LocalDate, AdStatistic>> statsMap = new HashMap<>();
@@ -198,7 +197,8 @@ public class StatisticServiceImpl implements StatisticService {
         // 从ad_impressions表获取统计数据
         LocalDateTime startTime = startDate != null ? LocalDateTime.of(startDate, LocalTime.MIN) : null;
         LocalDateTime endTime = endDate != null ? LocalDateTime.of(endDate, LocalTime.MAX) : null;
-        List<AdImpression> impressions = adImpressionRepository.findByAdIdAndDateRange(null, startTime, endTime);
+        website = website != "" ? website : null;
+        List<AdImpression> impressions = adImpressionRepository.findByAdIdAndDateRange(null, website, startTime, endTime);
         
         // 计算总览数据
         long totalImpressions = impressions.size();
@@ -241,9 +241,10 @@ public class StatisticServiceImpl implements StatisticService {
     @Override
     public List<StatisticTrend> getStatisticTrends(LocalDate startDate, LocalDate endDate, String website) {
         // 从ad_impressions表获取数据
+        website = website != "" ? website : null;
         LocalDateTime startTime = startDate != null ? LocalDateTime.of(startDate, LocalTime.MIN) : null;
         LocalDateTime endTime = endDate != null ? LocalDateTime.of(endDate, LocalTime.MAX) : null;
-        List<AdImpression> impressions = adImpressionRepository.findByAdIdAndDateRange(null, startTime, endTime);
+        List<AdImpression> impressions = adImpressionRepository.findByAdIdAndDateRange(null, website, startTime, endTime);
         
         // 按日期分组并聚合数据
         Map<LocalDate, StatisticTrend> trendMap = new TreeMap<>();
@@ -282,7 +283,7 @@ public class StatisticServiceImpl implements StatisticService {
         // 从ad_impressions表获取数据
         LocalDateTime startTime = startDate != null ? LocalDateTime.of(startDate, LocalTime.MIN) : null;
         LocalDateTime endTime = endDate != null ? LocalDateTime.of(endDate, LocalTime.MAX) : null;
-        List<AdImpression> impressions = adImpressionRepository.findByAdIdAndDateRange(null, startTime, endTime);
+        List<AdImpression> impressions = adImpressionRepository.findByAdIdAndDateRange(null, null, startTime, endTime);
         
         // 按网站进行分布统计
         Map<String, Double> distributionMap = new HashMap<>();
@@ -353,7 +354,7 @@ public class StatisticServiceImpl implements StatisticService {
         LocalDate today = LocalDate.now();
         LocalDateTime startTime = LocalDateTime.of(today, LocalTime.MIN);
         LocalDateTime endTime = LocalDateTime.of(today, LocalTime.MAX);
-        Long todayImpressions = adImpressionRepository.countImpressionsByAdIdAndDateRange(null, startTime, endTime);
+        Long todayImpressions = adImpressionRepository.countImpressionsByAdIdAndDateRange(null, null, startTime, endTime);
         
         return new DashboardSummary(materialCount, positionCount, advertiserCount, todayImpressions);
     }
