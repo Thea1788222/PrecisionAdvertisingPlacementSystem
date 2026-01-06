@@ -1,35 +1,37 @@
 @import './base.css';
 
-#app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  font-weight: normal;
+/* 全局样式 */
+body {
+  background: #ffffff !important; /* 白色背景 */
+  margin: 0;
+  padding: 0;
 }
 
+#app {
+  min-height: 100vh;
+  background: #ffffff; /* 确保应用容器也是白色背景 */
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* 移除Vue默认的链接样式 */
 a,
 .green {
   text-decoration: none;
-  color: hsla(160, 100%, 37%, 1);
-  transition: 0.4s;
-  padding: 3px;
+  color: #007bff;
+  transition: color 0.3s;
 }
 
-@media (hover: hover) {
-  a:hover {
-    background-color: hsla(160, 100%, 37%, 0.2);
-  }
+a:hover {
+  color: #0056b3;
 }
 
+/* 移除所有多余的布局样式 */
 @media (min-width: 1024px) {
   body {
-    display: flex;
-    place-items: center;
+    display: block; /* 改为正常的块级布局 */
   }
 
   #app {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    padding: 0 2rem;
+    display: block; /* 改为正常的块级布局 */
   }
 }
