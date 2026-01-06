@@ -14,6 +14,11 @@ const stats = ref({
 // 当前广告列表
 const currentAds = ref([])
 
+// 当前视频浏览状态
+let currentVideoView = null
+let videoViewStartTime = null
+let videoViewTimer = null
+
 // 添加调试信息
 function addDebugInfo(message) {
   const timestamp = new Date().toLocaleTimeString()
@@ -105,6 +110,151 @@ function trackSearch(query) {
       }
     }
   }, 300)
+}
+
+let videoViewElapsedBeforeAd = 0  // 广告开始前视频已观看的时长
+
+// 暂停视频浏览追踪（广告开始时调用）
+function pauseVideoViewTracking() {
+  if (currentVideoView && videoViewStartTime) {
+    const now = new Date()
+    const elapsed = (now - videoViewStartTime) / 1000
+    videoViewElapsedBeforeAd += elapsed
+    
+    if (videoViewTimer) {
+      clearInterval(videoViewTimer)
+      videoViewTimer = null
+    }
+    
+    addDebugInfo(`暂停视频追踪，已累计: ${videoViewElapsedBeforeAd.toFixed(1)}秒`)
+  }
+}
+
+// 恢复视频浏览追踪（广告结束后调用）
+function resumeVideoViewTracking() {
+  if (currentVideoView) {
+    videoViewStartTime = new Date()
+    
+    if (videoViewTimer) clearInterval(videoViewTimer)
+    videoViewTimer = setInterval(() => {
+      if (!document.hidden) {
+        const now = new Date()
+        const currentElapsed = (now - videoViewStartTime) / 1000
+        const totalDuration = Math.floor(videoViewElapsedBeforeAd + currentElapsed)
+        addDebugInfo(`继续观看视频: ${currentVideoView.videoId}, 总计已观看 ${totalDuration} 秒`)
+      }
+    }, 1000)
+    
+    addDebugInfo(`恢复视频追踪，继续计时`)
+  }
+}
+
+// 追踪视频浏览时长 - 开始
+function startVideoViewTracking(videoId, category) {
+  if (currentVideoView) {
+    recordVideoView()
+  }
+  
+  currentVideoView = { videoId, category }
+  videoViewStartTime = new Date()
+  videoViewElapsedBeforeAd = 0
+  
+  if (videoViewTimer) clearInterval(videoViewTimer)
+  videoViewTimer = setInterval(() => {
+    if (!document.hidden) {
+      const now = new Date()
+      const totalDuration = videoViewElapsedBeforeAd + (now - videoViewStartTime) / 1000
+      addDebugInfo(`正在观看视频: ${videoId}, 已观看 ${Math.floor(totalDuration)} 秒`)
+    }
+  }, 1000)
+}
+
+// 追踪视频浏览时长 - 记录
+function recordVideoView() {
+  if (currentVideoView && videoViewStartTime) {
+    const now = new Date()
+    const currentElapsed = (now - videoViewStartTime) / 1000
+    const totalDuration = Math.floor(videoViewElapsedBeforeAd + currentElapsed)
+    
+    const finalDuration = Math.max(1, Math.min(totalDuration, 3600))
+    
+    try {
+      window.adTracker.trackPageView({
+        targetId: `video_${currentVideoView.videoId}`,
+        category: currentVideoView.category || 'video',
+        duration: finalDuration
+      })
+      stats.value.pageViewCount++
+      addDebugInfo(`视频浏览记录: ${currentVideoView.videoId}, 时长: ${finalDuration}秒`)
+    } catch (error) {
+      addDebugInfo(`视频浏览记录失败: ${error.message}`)
+    }
+    
+    currentVideoView = null
+    videoViewStartTime = null
+    videoViewElapsedBeforeAd = 0
+    if (videoViewTimer) {
+      clearInterval(videoViewTimer)
+      videoViewTimer = null
+    }
+  }
+}
+
+// 当前广告浏览状态
+let currentAdView = null
+let adViewStartTime = null
+let adViewTimer = null
+
+// 追踪广告浏览时长 - 开始
+function startAdViewTracking(adId, category, position) {
+  if (currentAdView) {
+    recordAdView()
+  }
+  
+  pauseVideoViewTracking()
+  
+  currentAdView = { adId, category, position }
+  adViewStartTime = new Date()
+  
+  if (adViewTimer) clearInterval(adViewTimer)
+  adViewTimer = setInterval(() => {
+    if (!document.hidden) {
+      const currentTime = new Date()
+      const duration = Math.floor((currentTime - adViewStartTime) / 1000)
+      addDebugInfo(`正在观看广告: ${adId}, 已观看 ${duration} 秒`)
+    }
+  }, 1000)
+}
+
+// 追踪广告浏览时长 - 记录
+function recordAdView() {
+  if (currentAdView && adViewStartTime) {
+    const endTime = new Date()
+    const duration = Math.floor((endTime - adViewStartTime) / 1000)
+    
+    const finalDuration = Math.max(1, Math.min(duration, 3600))
+    
+    try {
+      window.adTracker.trackPageView({
+        targetId: `ad_${currentAdView.adId}`,
+        category: currentAdView.category || 'video',
+        duration: finalDuration
+      })
+      stats.value.pageViewCount++
+      addDebugInfo(`广告浏览记录: ${currentAdView.adId}, 时长: ${finalDuration}秒`)
+    } catch (error) {
+      addDebugInfo(`广告浏览记录失败: ${error.message}`)
+    }
+    
+    currentAdView = null
+    adViewStartTime = null
+    if (adViewTimer) {
+      clearInterval(adViewTimer)
+      adViewTimer = null
+    }
+    
+    resumeVideoViewTracking()
+  }
 }
 
 // 获取推荐广告
@@ -291,6 +441,12 @@ export function useAdTracker() {
     trackVideoClick,
     trackSearch,
     getRecommendedAds,
-    renderRecommendedAds
+    renderRecommendedAds,
+    startVideoViewTracking,
+    recordVideoView,
+    startAdViewTracking,
+    recordAdView,
+    pauseVideoViewTracking,
+    resumeVideoViewTracking
   }
 }

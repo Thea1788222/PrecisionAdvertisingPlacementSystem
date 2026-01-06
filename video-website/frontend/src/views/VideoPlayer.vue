@@ -9,6 +9,7 @@
         height="360"
         controls
         @play="handleVideoPlay"
+        @ended="handleVideoEnded"
         v-if="video.playUrl"
       >
         <source :src="video.playUrl" type="video/mp4" />
@@ -36,7 +37,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { useVideoPlayer } from '@/composables/useVideoPlayer'
 import { useAdManager } from '@/composables/useAdManager'
@@ -77,11 +78,12 @@ const {
   resetAdState
 } = useAdManager()
 
-const { initAdTracker } = useAdTracker()
+const { initAdTracker, startVideoViewTracking, recordVideoView } = useAdTracker()
 const adOverlayRef = ref(null)
+let hasRecordedView = false  // 标记是否已记录过视频浏览时长
 
 // ------------------------
-// 播放前贴片广告
+// 播放前贴片广告并开始视频浏览追踪
 // ------------------------
 const handleVideoPlay = async () => {
   if (!preRollPlayed.value) {
@@ -90,6 +92,10 @@ const handleVideoPlay = async () => {
       await nextTick()
       await adOverlayRef.value.playVideoAd(ad)
     }
+  }
+  
+  if (preRollPlayed.value && video.value?.id) {
+    startVideoViewTracking(video.value.id, video.value.category || 'video')
   }
 }
 
@@ -145,11 +151,32 @@ const skipAdInternal = () => {
 }
 
 // ------------------------
-// 广告结束处理
+// 广告结束处理并记录视频浏览时长
 // ------------------------
 const handleAdEndedInternal = () => {
   handleAdEnded(videoPlayer.value)
   setAdPlayingStatus(false)
+}
+
+
+// ------------------------
+// 视频结束处理
+// ------------------------
+const handleVideoEnded = () => {
+  if (!hasRecordedView) {
+    hasRecordedView = true
+    recordVideoView()
+  }
+}
+
+// ------------------------
+// 组件卸载时记录视频浏览时长
+// ------------------------
+const handleBeforeUnmount = () => {
+  if (!hasRecordedView) {
+    hasRecordedView = true
+    recordVideoView()
+  }
 }
 
 // ------------------------
@@ -174,6 +201,13 @@ onMounted(async () => {
   // 等待视频元素渲染完成后设置监听器
   await nextTick()
   setupVideoListeners()
+})
+
+// ------------------------
+// 组件卸载
+// ------------------------
+onBeforeUnmount(() => {
+  handleBeforeUnmount()
 })
 </script>
 

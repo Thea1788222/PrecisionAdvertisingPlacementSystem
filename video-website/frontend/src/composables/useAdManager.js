@@ -13,7 +13,7 @@ export function useAdManager() {
   const preRollPlayed = ref(false)
   const playedMidRollPositions = ref(new Set())
 
-  const { getRecommendedAds, trackAdClick, trackAdImpression, addDebugInfo } = useAdTracker()
+  const { getRecommendedAds, trackAdClick, trackAdImpression, addDebugInfo, startAdViewTracking, recordAdView } = useAdTracker()
 
   // SDK位置参数映射
   const SDK_POSITIONS = {
@@ -91,6 +91,9 @@ export function useAdManager() {
     showAd.value = false
     isVideoAd.value = false
     isImageAd.value = false
+    
+    recordAdView()
+    
     currentAd.value = null
 
     if (mainVideoRef?.play) mainVideoRef.play().catch(() => {})
@@ -112,6 +115,8 @@ export function useAdManager() {
     showAd.value = true
     adTitle.value = ad.title || '广告'
     startAdCountdown(isVideoAd.value ? 'video' : 'image')
+    
+    startAdViewTracking(ad.id || Date.now(), ad.category || 'video', 'pre-roll')
 
     mainVideoRef?.pause()
     return ad
@@ -135,6 +140,8 @@ export function useAdManager() {
     startAdCountdown(isVideoAd.value ? 'video' : 'image')
 
     trackAdImpressionForAd(ad)
+    
+    startAdViewTracking(ad.id || Date.now(), ad.category || 'video', 'mid-roll')
 
     mainVideoRef?.pause()
     return ad

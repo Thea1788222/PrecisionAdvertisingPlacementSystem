@@ -1,5 +1,5 @@
 <template>
-  <div class="video-card" @click="$emit('click')">
+  <div class="video-card">
     <img :src="video.coverUrl" alt="封面" width="200" height="120" />
     <h3>{{ video.title }}</h3>
     <p>{{ video.description }}</p>
