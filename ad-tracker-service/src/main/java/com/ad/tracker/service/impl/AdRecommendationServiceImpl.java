@@ -160,8 +160,8 @@ public class AdRecommendationServiceImpl implements AdRecommendationService {
         List<AdMaterial> sortedMaterials = allRelevantAds.stream()
             .filter(ad -> !usedAdIds.contains(ad.getId())) // 过滤已使用的广告
             .sorted((a, b) -> {
-                double scoreA = calculatePrecisionScore(a, userProfile, behaviors);
-                double scoreB = calculatePrecisionScore(b, userProfile, behaviors);
+                double scoreA = calculatePrecisionScore(a, userProfile, behaviors, interests);
+                double scoreB = calculatePrecisionScore(b, userProfile, behaviors, interests);
                 return Double.compare(scoreB, scoreA); // 降序排列
             })
             .toList();
@@ -304,12 +304,12 @@ public class AdRecommendationServiceImpl implements AdRecommendationService {
     /**
      * 计算精准投放阶段的广告得分
      */
-    private double calculatePrecisionScore(AdMaterial ad, UserProfile userProfile, List<UserBehavior> behaviors) {
+    private double calculatePrecisionScore(AdMaterial ad, UserProfile userProfile, List<UserBehavior> behaviors, Map<String, Double> userInterests) {
         // 基础出价
         double bidPrice = ad.getBidPrice().doubleValue();
         
-        // 计算兴趣权重
-        double interestWeight = calculateInterestWeight(ad, behaviors);
+        // 计算兴趣权重（结合用户画像中的兴趣权重和用户行为）
+        double interestWeight = calculateInterestWeight(ad, behaviors, userInterests);
         
         // 计算时间衰减因子 (λ=0.1)
         double timeDecay = calculateTimeDecay(userProfile);
@@ -320,12 +320,18 @@ public class AdRecommendationServiceImpl implements AdRecommendationService {
     
     /**
      * 计算兴趣权重
-     * 兴趣权重 = Σ(行为权重 × 类别相关度)
+     * 兴趣权重 = 用户画像中的类别权重 + Σ(行为权重 × 类别相关度)
      * 行为权重：浏览(0.1) < 搜索(0.3) < 点击(0.5) < 购买(1.0)
      */
-    private double calculateInterestWeight(AdMaterial ad, List<UserBehavior> behaviors) {
+    private double calculateInterestWeight(AdMaterial ad, List<UserBehavior> behaviors, Map<String, Double> userInterests) {
         double weight = 0.0;
         
+        // 从用户画像中获取广告类别的兴趣权重
+        if (userInterests.containsKey(ad.getCategory())) {
+            weight += userInterests.get(ad.getCategory());
+        }
+        
+        // 根据用户行为计算额外权重
         for (UserBehavior behavior : behaviors) {
             if (behavior.getCategory() == null || !behavior.getCategory().equals(ad.getCategory())) {
                 continue;
