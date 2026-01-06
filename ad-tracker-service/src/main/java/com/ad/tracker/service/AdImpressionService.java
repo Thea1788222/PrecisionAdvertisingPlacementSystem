@@ -1,50 +1,31 @@
 package com.ad.tracker.service;
 
-import com.ad.tracker.model.AdImpression;
-import com.ad.tracker.repository.AdImpressionRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.logging.Logger;
 
-@Service
-public class AdImpressionService {
-    
-    private static final Logger logger = Logger.getLogger(AdImpressionService.class.getName());
-    
-    @Autowired
-    private AdImpressionRepository adImpressionRepository;
-    
-    public AdImpression saveAdImpression(Long adId, String cookieId, String website, 
-                                       String position, BigDecimal bidPrice) {
-        try {
-            AdImpression impression = new AdImpression();
-            impression.setAdId(adId);
-            impression.setCookieId(cookieId);
-            impression.setWebsite(website);
-            impression.setPosition(position);
-            impression.setBidPrice(bidPrice);
-            impression.setIsClicked(0); // 0表示未点击
-            impression.setCreatedAt(LocalDateTime.now());
-            return adImpressionRepository.save(impression);
-        } catch (Exception e) {
-            logger.severe("保存广告展示记录时出错: " + e.getMessage());
-            throw e;
-        }
-    }
-    
-    public AdImpression updateAdClick(Long impressionId) {
-        try {
-            AdImpression impression = adImpressionRepository.findById(impressionId).orElse(null);
-            if (impression != null) {
-                impression.setIsClicked(1); // 1表示已点击
-                return adImpressionRepository.save(impression);
-            }
-            return null;
-        } catch (Exception e) {
-            logger.severe("更新广告点击记录时出错: " + e.getMessage());
-            throw e;
-        }
-    }
+import com.ad.tracker.model.AdImpression;
+
+import java.math.BigDecimal;
+
+/**
+ * @author DaYang
+ * @date 2025/12/10
+ * @description
+ */
+public interface AdImpressionService {
+    /**
+     * 保存广告展示记录
+     * @param adId 广告ID
+     * @param userFingerprint 用户指纹
+     * @param website 网站
+     * @param position 广告位置
+     * @param bidPrice 竞价价格
+     * @return 广告展示记录
+     */
+    public AdImpression saveAdImpression(Long adId, String userFingerprint, String website, String position, BigDecimal bidPrice);
+
+    /**
+     * 更新广告点击记录
+     * @param impressionId 广告展示记录ID
+     * @return 更新后的广告点击记录
+     */
+    public AdImpression updateAdClick(Long impressionId);
 }

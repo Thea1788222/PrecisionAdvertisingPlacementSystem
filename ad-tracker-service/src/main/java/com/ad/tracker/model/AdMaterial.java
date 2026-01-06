@@ -1,192 +1,67 @@
 package com.ad.tracker.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+@AllArgsConstructor
+@NoArgsConstructor
+@Setter
+@Getter
 @Entity
 @Table(name = "ad_materials")
 public class AdMaterial {
-    
+
+    // 主键
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
-    @Column(name = "advertiser_id")
+
+    // 广告主ID
     private Long advertiserId;
-    
+
+    // 标题
     private String title;
-    
+
+    // 类型
     private String type;
-    
-    @Column(name = "image_url")
+
+    // 图片URL
     private String imageUrl;
-    
-    @Column(name = "video_url")
+
+    // 视频URL
     private String videoUrl;
-    
-    @Column(name = "link_url")
+
+    // 链接URL
     private String linkUrl;
-    
+
+    // 宽度
     private Integer width;
-    
+
+    // 高度
     private Integer height;
-    
+
+    // 持续时间
     private Integer duration;
-    
+
+    // 分类
     private String category;
-    
-    @Column(name = "target_interest")
+
+    // 目标兴趣
     private String targetInterest;
-    
-    @Column(name = "bid_price")
+
+    // 竞价价格
     private BigDecimal bidPrice;
-    
+
+    // 状态
     private Integer status;
-    
-    @Column(name = "created_at")
+
+    // 创建时间
     private LocalDateTime createdAt;
-    
-    public AdMaterial() {}
-    
-    public AdMaterial(Long id, Long advertiserId, String title, String type, String imageUrl, 
-                     String videoUrl, String linkUrl, Integer width, Integer height, Integer duration, 
-                     String category, String targetInterest, BigDecimal bidPrice, Integer status, 
-                     LocalDateTime createdAt) {
-        this.id = id;
-        this.advertiserId = advertiserId;
-        this.title = title;
-        this.type = type;
-        this.imageUrl = imageUrl;
-        this.videoUrl = videoUrl;
-        this.linkUrl = linkUrl;
-        this.width = width;
-        this.height = height;
-        this.duration = duration;
-        this.category = category;
-        this.targetInterest = targetInterest;
-        this.bidPrice = bidPrice;
-        this.status = status;
-        this.createdAt = createdAt;
-    }
-    
-    public Long getId() {
-        return id;
-    }
-    
-    public void setId(Long id) {
-        this.id = id;
-    }
-    
-    public Long getAdvertiserId() {
-        return advertiserId;
-    }
-    
-    public void setAdvertiserId(Long advertiserId) {
-        this.advertiserId = advertiserId;
-    }
-    
-    public String getTitle() {
-        return title;
-    }
-    
-    public void setTitle(String title) {
-        this.title = title;
-    }
-    
-    public String getType() {
-        return type;
-    }
-    
-    public void setType(String type) {
-        this.type = type;
-    }
-    
-    public String getImageUrl() {
-        return imageUrl;
-    }
-    
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
-    }
-    
-    public String getVideoUrl() {
-        return videoUrl;
-    }
-    
-    public void setVideoUrl(String videoUrl) {
-        this.videoUrl = videoUrl;
-    }
-    
-    public String getLinkUrl() {
-        return linkUrl;
-    }
-    
-    public void setLinkUrl(String linkUrl) {
-        this.linkUrl = linkUrl;
-    }
-    
-    public Integer getWidth() {
-        return width;
-    }
-    
-    public void setWidth(Integer width) {
-        this.width = width;
-    }
-    
-    public Integer getHeight() {
-        return height;
-    }
-    
-    public void setHeight(Integer height) {
-        this.height = height;
-    }
-    
-    public Integer getDuration() {
-        return duration;
-    }
-    
-    public void setDuration(Integer duration) {
-        this.duration = duration;
-    }
-    
-    public String getCategory() {
-        return category;
-    }
-    
-    public void setCategory(String category) {
-        this.category = category;
-    }
-    
-    public String getTargetInterest() {
-        return targetInterest;
-    }
-    
-    public void setTargetInterest(String targetInterest) {
-        this.targetInterest = targetInterest;
-    }
-    
-    public BigDecimal getBidPrice() {
-        return bidPrice;
-    }
-    
-    public void setBidPrice(BigDecimal bidPrice) {
-        this.bidPrice = bidPrice;
-    }
-    
-    public Integer getStatus() {
-        return status;
-    }
-    
-    public void setStatus(Integer status) {
-        this.status = status;
-    }
-    
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-    
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
+
 }

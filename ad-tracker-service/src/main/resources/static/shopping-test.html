@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>购物网站测试页面 - SDK集成测试</title>
+    <link rel="stylesheet" href="shopping-test.css">
+</head>
+<body>
+    <!-- 顶部导航 -->
+    <header class="header">
+        <div class="nav-container">
+            <div class="logo">购物网</div>
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="搜索商品...">
+            </div>
+            <div class="nav-icons">
+                <div class="nav-icon">🛒</div>
+                <div class="nav-icon">👤</div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- 顶部广告位 -->
+        <div class="top-ad" id="topBannerAd">
+            <h3>顶部横幅广告位 (728x90)</h3>
+            <div id="topBannerContent">这里是顶部广告展示区域</div>
+        </div>
+
+        <!-- 主要布局 -->
+        <div class="main-layout">
+            <!-- 侧边栏 -->
+            <aside class="sidebar">
+                <h3>商品分类</h3>
+                <ul class="categories">
+                    <li data-category="electronics">📱 电子产品</li>
+                    <li data-category="fashion">👕 服装鞋帽</li>
+                    <li data-category="food">🍎 食品饮料</li>
+                    <li data-category="sports">⚽ 运动户外</li>
+                    <li data-category="home">🏠 家居生活</li>
+                    <li data-category="education">📚 图书教育</li>
+                </ul>
+                
+                <!-- 侧边广告位 -->
+                <div class="sidebar-ad" id="sidebarAd">
+                    <h4>侧边栏广告</h4>
+                    <div id="sidebarContent">300x250 广告位</div>
+                </div>
+            </aside>
+
+            <!-- 商品网格 -->
+            <main class="products-content">
+                <div class="products-grid" id="productsGrid">
+                    <!-- 商品将通过JavaScript动态生成 -->
+                </div>
+                
+                <!-- 信息流广告 -->
+                <div class="highlight" id="feedAd" style="text-align: center; margin: 20px 0;">
+                    <h4>广告推广</h4>
+                    <div id="feedContent">这里是信息流广告位</div>
+                </div>
+                
+                <div class="products-grid" id="productsGrid2">
+                    <!-- 更多商品 -->
+                </div>
+            </main>
+
+            <!-- 右侧广告 -->
+            <aside class="right-ads">
+                <div class="right-ad" id="rightAd1">
+                    <h4>右侧广告 1</h4>
+                    <div id="rightAd1Content">推荐商品广告</div>
+                </div>
+                <div class="right-ad" id="rightAd2">
+                    <h4>右侧广告 2</h4>
+                    <div id="rightAd2Content">热门商品推荐</div>
+                </div>
+            </aside>
+        </div>
+
+        <!-- 底部广告位 -->
+        <div class="bottom-ad" id="bottomAd">
+            <h3>底部广告位</h3>
+            <div id="bottomContent">相关商品推荐广告</div>
+        </div>
+
+        <!-- 调试面板 -->
+        <div class="debug-panel">
+            <h3>SDK调试信息</h3>
+            <div class="debug-info" id="debugInfo">
+                SDK初始化中...
+            </div>
+            
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-number" id="pageViewCount">0</div>
+                    <div class="stat-label">页面浏览</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="clickCount">0</div>
+                    <div class="stat-label">点击事件</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="searchCount">0</div>
+                    <div class="stat-label">搜索事件</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="adImpressionCount">0</div>
+                    <div class="stat-label">广告展示</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="adClickCount">0</div>
+                    <div class="stat-label">广告点击</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="recommendedAdCount">0</div>
+                    <div class="stat-label">推荐广告</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 商品详情弹窗 -->
+    <div id="productModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="modalTitle">商品详情</h2>
+            <div id="modalContent"></div>
+        </div>
+    </div>
+
+    <!-- 引入广告追踪SDK和测试脚本 -->
+    <script src="ad-tracker.js"></script>
+    <script src="shopping-test.js"></script>
+</body>
+</html>

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>购物网站广告追踪测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .test-section h2 {
+            margin-top: 0;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #result {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 20px;
+            white-space: pre-wrap;
+        }
+        .ad-container {
+            border: 2px dashed #007bff;
+            padding: 20px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .product {
+            border: 1px solid #eee;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>购物网站广告追踪测试</h1>
+    
+    <div class="test-section">
+        <h2>1. SDK初始化</h2>
+        <button onclick="initSDK()">初始化广告追踪SDK</button>
+        <p>初始化SDK并连接到广告商的追踪服务。</p>
+    </div>
+
+    <div class="test-section">
+        <h2>2. 用户行为追踪</h2>
+        <button onclick="trackProductView()">浏览商品</button>
+        <button onclick="trackAddToCart()">加入购物车</button>
+        <button onclick="trackPurchase()">完成购买</button>
+        <p>模拟用户在购物网站上的行为。</p>
+    </div>
+
+    <div class="test-section">
+        <h2>3. 广告交互追踪</h2>
+        <div class="ad-container">
+            <h3>商品推荐广告</h3>
+            <p>这是基于用户兴趣的商品推荐广告。</p>
+            <button onclick="trackAdImpression()">记录广告展示</button>
+            <button onclick="trackAdClick()">记录广告点击</button>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>4. 用户信息</h2>
+        <button onclick="showUserInfo()">显示用户追踪信息</button>
+        <p>显示当前用户的追踪ID和相关信息。</p>
+    </div>
+
+    <div id="result"></div>
+
+    <!-- 引入广告追踪SDK -->
+    <script src="http://track.test.com:8084/ad-tracker.js"></script>
+
+    <script>
+        // 显示结果的辅助函数
+        function showResult(message) {
+            document.getElementById('result').textContent = message;
+        }
+
+        // 初始化SDK
+        function initSDK() {
+            try {
+                adTracker.init({
+                    trackerServer: 'http://track.test.com:8084',
+                    website: 'shop.test.com'
+                });
+                showResult('购物网站SDK初始化成功!\n' +
+                          '追踪服务器: http://track.test.com:8084\n' +
+                          '网站标识: shop.test.com');
+            } catch (error) {
+                showResult('SDK初始化失败: ' + error.message);
+            }
+        }
+
+        // 浏览商品
+        function trackProductView() {
+            try {
+                adTracker.trackPageView({
+                    targetId: 'product-12345',
+                    category: 'electronics',
+                    keywords: '手机,数码'
+                });
+                showResult('商品浏览记录成功!\n商品ID: product-12345\n类别: electronics');
+            } catch (error) {
+                showResult('商品浏览记录失败: ' + error.message);
+            }
+        }
+
+        // 记录加入购物车
+        function trackAddToCart() {
+            try {
+                adTracker.trackClick({
+                    targetId: 'add-to-cart-button',
+                    category: 'shopping',
+                    keywords: '购物车,购买'
+                });
+                showResult('加入购物车记录成功!');
+            } catch (error) {
+                showResult('加入购物车记录失败: ' + error.message);
+            }
+        }
+
+        // 记录购买行为
+        function trackPurchase() {
+            try {
+                adTracker.trackClick({
+                    targetId: 'purchase-button',
+                    category: 'shopping',
+                    keywords: '支付,完成购买'
+                });
+                showResult('购买行为记录成功!');
+            } catch (error) {
+                showResult('购买行为记录失败: ' + error.message);
+            }
+        }
+
+        // 记录广告展示
+        function trackAdImpression() {
+            try {
+                adTracker.trackAdImpression(101, 'product-sidebar', 2.50);
+                showResult('广告展示记录成功!\n广告ID: 101\n位置: product-sidebar\n出价: 2.50');
+            } catch (error) {
+                showResult('广告展示记录失败: ' + error.message);
+            }
+        }
+
+        // 记录广告点击
+        function trackAdClick() {
+            try {
+                adTracker.trackAdClick(1001);
+                showResult('广告点击记录成功!\n展示ID: 1001');
+            } catch (error) {
+                showResult('广告点击记录失败: ' + error.message);
+            }
+        }
+
+        // 显示用户信息
+        function showUserInfo() {
+            try {
+                const fingerprint = adTracker.generateFingerprint();
+                showResult('用户追踪信息:\n' +
+                          '浏览器指纹: ' + fingerprint);
+            } catch (error) {
+                showResult('获取用户信息失败: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>

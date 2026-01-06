@@ -1,111 +1,45 @@
 package com.ad.tracker.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
 @Table(name = "ad_impressions")
 public class AdImpression {
-    
+
+    // 主键
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
-    @Column(name = "ad_id")
+
+    // 广告ID
     private Long adId;
-    
-    @Column(name = "cookie_id")
-    private String cookieId;
-    
+
+    // 用户指纹
+    private String userFingerprint;
+
+    // 网站
     private String website;
-    
+
+    // 广告位置
     private String position;
-    
-    @Column(name = "is_clicked")
+
+    // 是否点击
     private Integer isClicked;
-    
-    @Column(name = "bid_price")
+
+    // 竞标价格
     private BigDecimal bidPrice;
-    
-    @Column(name = "created_at")
+
+    // 创建时间
     private LocalDateTime createdAt;
-    
-    public AdImpression() {}
-    
-    public AdImpression(Long id, Long adId, String cookieId, String website, String position, 
-                       Integer isClicked, BigDecimal bidPrice, LocalDateTime createdAt) {
-        this.id = id;
-        this.adId = adId;
-        this.cookieId = cookieId;
-        this.website = website;
-        this.position = position;
-        this.isClicked = isClicked;
-        this.bidPrice = bidPrice;
-        this.createdAt = createdAt;
-    }
-    
-    public Long getId() {
-        return id;
-    }
-    
-    public void setId(Long id) {
-        this.id = id;
-    }
-    
-    public Long getAdId() {
-        return adId;
-    }
-    
-    public void setAdId(Long adId) {
-        this.adId = adId;
-    }
-    
-    public String getCookieId() {
-        return cookieId;
-    }
-    
-    public void setCookieId(String cookieId) {
-        this.cookieId = cookieId;
-    }
-    
-    public String getWebsite() {
-        return website;
-    }
-    
-    public void setWebsite(String website) {
-        this.website = website;
-    }
-    
-    public String getPosition() {
-        return position;
-    }
-    
-    public void setPosition(String position) {
-        this.position = position;
-    }
-    
-    public Integer getIsClicked() {
-        return isClicked;
-    }
-    
-    public void setIsClicked(Integer isClicked) {
-        this.isClicked = isClicked;
-    }
-    
-    public BigDecimal getBidPrice() {
-        return bidPrice;
-    }
-    
-    public void setBidPrice(BigDecimal bidPrice) {
-        this.bidPrice = bidPrice;
-    }
-    
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-    
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
 }
