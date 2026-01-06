@@ -36,6 +36,19 @@ spring:
     time-zone: Asia/Shanghai
     default-property-inclusion: non_null
 
+  # 静态资源配置
+  mvc:
+    static-path-pattern: /**
+  web:
+    resources:
+      static-locations: classpath:/static/, classpath:/frontend/dist/
+
+# 广告追踪服务配置（杨宇程的服务）
+ad:
+  tracker:
+    server: http://localhost:8080  # 杨宇程的服务地址
+    website: shop
+
 # Logging configuration
 logging:
   level:
