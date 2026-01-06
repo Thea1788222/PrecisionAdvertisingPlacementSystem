@@ -83,7 +83,7 @@ const adOverlayRef = ref(null)
 // ------------------------
 const handleVideoPlay = async () => {
   if (!preRollPlayed.value) {
-    const ad = await playPreRollAd()
+    const ad = await playPreRollAd(videoPlayer.value)
     if (ad && adOverlayRef.value) {
       await nextTick()
       await adOverlayRef.value.playVideoAd(ad)

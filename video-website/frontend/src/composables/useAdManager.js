@@ -78,7 +78,7 @@ export function useAdManager() {
   // -----------------------
   // 播放前贴片广告
   // -----------------------
-  const playPreRollAd = async () => {
+  const playPreRollAd = async (mainVideoRef) => {
     if (preRollPlayed.value) return false
     preRollPlayed.value = true
 
@@ -92,6 +92,7 @@ export function useAdManager() {
     adTitle.value = ad.title || '广告'
     startAdCountdown(isVideoAd.value ? 'video' : 'image')
 
+    mainVideoRef?.pause()
     return ad
   }
 
