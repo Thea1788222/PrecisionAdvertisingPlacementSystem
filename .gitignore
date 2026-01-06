@@ -108,3 +108,6 @@ logs/
 
 deploy.sh
 deploy-config.sh
+
+# Video resources (local video files)
+video-website/src/main/resources/videos/

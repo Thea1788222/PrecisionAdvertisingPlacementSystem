@@ -23,7 +23,7 @@ export function useVideoPlayer() {
   // ------------------------------
   const loadVideo = async (id) => {
     try {
-      const res = await axios.get(`http://localhost:8082/api/videos/${id}`)
+      const res = await axios.get(`/api/videos/${id}`)
       video.value = res.data
       return video.value
     } catch (error) {

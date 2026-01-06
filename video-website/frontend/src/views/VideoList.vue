@@ -143,12 +143,13 @@ const categories = [
   { key: 'beauty', name: '美容', icon: '💄' }
 ]
 
+// loadVideos 函数
 const loadVideos = async (category = 'all') => {
   loading.value = true
   try {
-    let url = 'http://localhost:8082/api/videos'
+    let url = '/api/videos'  // ← 改为相对路径
     if (category !== 'all') {
-      url = `http://localhost:8082/api/videos/category/${category}`
+      url = `/api/videos/category/${category}`  // ← 改为相对路径
     }
     const res = await axios.get(url)
     videos.value = res.data
@@ -159,6 +160,7 @@ const loadVideos = async (category = 'all') => {
     loading.value = false
   }
 }
+
 
 onMounted(async () => {
   // 初始化广告追踪SDK
@@ -199,7 +201,7 @@ async function performSearch() {
 
   loading.value = true
   try {
-    const response = await axios.get('http://localhost:8082/api/videos/search', {
+    const response = await axios.get('http://10.100.164.25:8082/api/videos/search', {
       params: {
         query: query
       }
