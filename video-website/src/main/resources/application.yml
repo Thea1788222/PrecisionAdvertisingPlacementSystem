@@ -8,9 +8,9 @@ spring:
     name: video-website
   
   datasource:
-    url: jdbc:mysql://10.100.164.35:3306/advertising_system?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
-    username: remote
-    password: StrongPassword123!
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:video_website}?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:123456}
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
       minimum-idle: 5
@@ -47,3 +47,10 @@ logging:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n"
   file:
     name: logs/video-website.log
+
+# =========================
+# 视频文件相关配置
+# =========================
+video:
+  storage-path: /home/liuzejia/video_website/app/videos
+  public-url-prefix: http://10.100.164.25:8082/videos/

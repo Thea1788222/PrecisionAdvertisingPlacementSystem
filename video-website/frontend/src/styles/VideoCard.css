@@ -1,0 +1,30 @@
+.video-card {
+  border: 1px solid #ccc;
+  padding: 8px;
+  width: 220px;
+  cursor: pointer;
+  transition: transform 0.2s;
+  position: relative;
+}
+
+.video-card:hover {
+  transform: scale(1.05);
+}
+
+.video-card img {
+  display: block;
+  margin-bottom: 8px;
+  object-fit: cover;
+}
+
+.category-tag {
+  display: inline-block;
+  background-color: #007bff;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 12px;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}

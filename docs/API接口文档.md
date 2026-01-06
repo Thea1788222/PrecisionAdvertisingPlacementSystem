@@ -940,6 +940,27 @@
 }
 ```
 
+#### 按分类获取视频列表
+- **URL**: `/api/videos/category/{category}`
+- **方法**: GET
+- **描述**: 根据分类获取视频列表
+- **路径参数**:
+  - category: 视频分类 (movie, tv, anime, music, game, documentary)
+- **响应**:
+```json
+[
+  {
+    "id": 1,
+    "title": "示例电影",
+    "description": "这是一个测试电影",
+    "duration": 300,
+    "category": "movie",
+    "thumbnailUrl": "https://cdn.xxx.com/cover/1.jpg",
+    "videoUrl": "https://cdn.xxx.com/video/1.mp4"
+  }
+]
+```
+
 #### 获取视频详情
 - **URL**: `/api/videos/{id}`
 - **方法**: GET
