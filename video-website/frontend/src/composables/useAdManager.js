@@ -33,8 +33,9 @@ export function useAdManager() {
       console.log(`[getAd] 获取到广告数组:`, ads)
       
       if (ads?.length) {
-        const ad = ads[0]
-        console.log(`[getAd] 选中广告:`, ad)
+        const randomIndex = Math.floor(Math.random() * ads.length)
+        const ad = ads[randomIndex]
+        console.log(`[getAd] 随机选择广告, 索引: ${randomIndex}, 广告:`, ad)
         
         if (ad) {
           ad.playUrl = ad.videoUrl || ''
