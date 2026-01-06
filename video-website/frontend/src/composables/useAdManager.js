@@ -13,28 +13,29 @@ export function useAdManager() {
   const preRollPlayed = ref(false)
   const playedMidRollPositions = ref(new Set())
 
-  const { getRecommendedAds, trackAdClick } = useAdTracker()
+  const { getRecommendedAds, trackAdClick, trackAdImpression, addDebugInfo } = useAdTracker()
+
+  // SDK位置参数映射
+  const SDK_POSITIONS = {
+    'video-pre-roll': 'right-rail-1',  // 前贴片广告
+    'video-mid-roll': 'right-rail-2'   // 中插广告
+  }
 
   // -----------------------
   // 获取广告
   // -----------------------
   const getAd = async (positionType) => {
     try {
-      const ads = await getRecommendedAds()
+      const sdkPosition = SDK_POSITIONS[positionType]
+      console.log(`[getAd] 请求广告类型: ${positionType}, SDK位置: ${sdkPosition}`)
+      
+      const ads = await getRecommendedAds({ type: 'video', positions: [sdkPosition] })
+      console.log(`[getAd] 获取到广告数组:`, ads)
+      
       if (ads?.length) {
-        const filteredAds = ads.filter(ad => {
-          if (positionType === 'video-pre-roll') {
-            return ad.position === 'right-rail-1' || !ad.position
-          } else if (positionType === 'video-mid-roll') {
-            return ad.position === 'right-rail-2' || !ad.position
-          }
-          return true
-        })
-        const ad = filteredAds[0] || ads[0]
-        console.log('广告视频 URL:', ad.videoUrl)
-        console.log('原始广告对象:', JSON.stringify(ad, null, 2))
-
-
+        const ad = ads[0]
+        console.log(`[getAd] 选中广告:`, ad)
+        
         if (ad) {
           ad.playUrl = ad.videoUrl || ''
           ad.position = positionType
@@ -42,8 +43,27 @@ export function useAdManager() {
           return ad
         }
       }
+      console.log(`[getAd] 未找到可用广告`)
+      return null
     } catch (e) {
-      console.error('获取广告失败:', e)
+      console.error('[getAd] 获取广告失败:', e)
+      return null
+    }
+  }
+
+  // -----------------------
+  // 追踪广告展示
+  // -----------------------
+  const trackAdImpressionForAd = (ad) => {
+    if (ad) {
+      trackAdImpression(ad.id || Date.now(), ad.position, ad.bidPrice)
+        .then(impressionId => {
+          ad.impressionId = impressionId
+          addDebugInfo(`中插广告展示: 位置=${ad.position}, ID=${ad.id}`)
+        })
+        .catch(error => {
+          addDebugInfo(`中插广告展示记录失败: ${error.message}`)
+        })
     }
   }
 
@@ -113,6 +133,8 @@ export function useAdManager() {
     adTitle.value = ad.title || '中插广告'
     startAdCountdown(isVideoAd.value ? 'video' : 'image')
 
+    trackAdImpressionForAd(ad)
+
     mainVideoRef?.pause()
     return ad
   }
@@ -121,6 +143,15 @@ export function useAdManager() {
   // 跳过广告
   // -----------------------
   const skipAd = (mainVideoRef) => hideAd(mainVideoRef)
+
+  // -----------------------
+  // 重置广告状态（换视频时调用）
+  // -----------------------
+  const resetAdState = () => {
+    preRollPlayed.value = false
+    playedMidRollPositions.value.clear()
+    hideAd()
+  }
 
   // -----------------------
   // 广告播放结束
@@ -148,6 +179,7 @@ export function useAdManager() {
     playMidRollAdAt,
     skipAd,
     handleAdEnded,
-    trackAdClickReal
+    trackAdClickReal,
+    resetAdState
   }
 }

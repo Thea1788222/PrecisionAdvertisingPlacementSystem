@@ -108,15 +108,20 @@ function trackSearch(query) {
 }
 
 // 获取推荐广告
-function getRecommendedAds() {
+function getRecommendedAds(options = {}) {
+  const { type = '', positions, category = '', count = 6 } = options
   try {
-    return window.adTracker.getRecommendedAds({
-      positions: ['top-banner', 'sidebar', 'feed', 'right-rail-1', 'right-rail-2', 'bottom-banner'],
-      category: '',//不确定类别是什么，空字符串直接根据用户画像推荐
-      count: 6
-    }).then(ads => {
+    const requestParams = {
+      positions: positions || ['top-banner', 'sidebar', 'feed', 'right-rail-1', 'right-rail-2', 'bottom-banner'],
+      category: category,
+      count: count
+    }
+    if (type) {
+      requestParams.type = type
+    }
+    return window.adTracker.getRecommendedAds(requestParams).then(ads => {
       stats.value.recommendedAdCount += ads.length
-      addDebugInfo(`获取推荐广告成功: ${ads.length}个`)
+      addDebugInfo(`获取推荐广告成功: ${ads.length}个, 类型=${type || '不限'}`)
       currentAds.value = ads
       renderRecommendedAds(ads)
       return ads

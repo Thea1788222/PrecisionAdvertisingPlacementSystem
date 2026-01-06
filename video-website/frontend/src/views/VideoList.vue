@@ -169,9 +169,9 @@ onMounted(async () => {
   // 加载视频数据
   await loadVideos()
 
-  // 如果SDK初始化成功，获取推荐广告
+  // 如果SDK初始化成功，获取推荐广告（原生图片类型）
   if (sdkInitialized) {
-    getRecommendedAds()
+    getRecommendedAds({ type: 'native' })
   }
 
   // 设置分类点击事件

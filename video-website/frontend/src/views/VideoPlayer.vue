@@ -53,7 +53,8 @@ const {
   videoPlayer,
   loadVideo,
   setupVideoListeners,
-  setMidRollAdListener
+  setMidRollAdListener,
+  setAdPlayingStatus
 } = useVideoPlayer()
 
 // ------------------------
@@ -72,7 +73,8 @@ const {
   playMidRollAdAt,
   skipAd,
   handleAdEnded,
-  trackAdClickReal
+  trackAdClickReal,
+  resetAdState
 } = useAdManager()
 
 const { initAdTracker } = useAdTracker()
@@ -95,11 +97,42 @@ const handleVideoPlay = async () => {
 // 中插广告监听
 // ------------------------
 const handleMidRollAd = async (positionIndex) => {
-  if (!videoPlayer.value || !adOverlayRef.value) return
+  console.log(`[handleMidRollAd] 收到中插广告回调, positionIndex: ${positionIndex}`)
+  console.log(`[handleMidRollAd] videoPlayer存在: ${!!videoPlayer.value}, adOverlayRef存在: ${!!adOverlayRef.value}`)
+  
+  if (!videoPlayer.value) {
+    console.log(`[handleMidRollAd] videoPlayer不存在，提前返回`)
+    return
+  }
+  
+  setAdPlayingStatus(true)
+  console.log(`[handleMidRollAd] 调用 playMidRollAdAt`)
   const ad = await playMidRollAdAt(positionIndex, videoPlayer.value)
+  console.log(`[handleMidRollAd] playMidRollAdAt返回:`, ad)
+  
   if (ad) {
     await nextTick()
-    await adOverlayRef.value.playVideoAd(ad)
+    console.log(`[handleMidRollAd] showAd: ${showAd.value}, adOverlayRef:`, adOverlayRef.value)
+    
+    if (adOverlayRef.value) {
+      console.log(`[handleMidRollAd] 调用 adOverlayRef.playVideoAd`)
+      await adOverlayRef.value.playVideoAd(ad)
+      console.log(`[handleMidRollAd] playVideoAd完成`)
+    } else {
+      console.log(`[handleMidRollAd] adOverlayRef仍不存在，尝试延迟重试`)
+      for (let i = 0; i < 5; i++) {
+        await new Promise(r => setTimeout(r, 100))
+        await nextTick()
+        if (adOverlayRef.value) {
+          await adOverlayRef.value.playVideoAd(ad)
+          console.log(`[handleMidRollAd] 延迟重试成功，playVideoAd完成`)
+          break
+        }
+      }
+    }
+  } else {
+    console.log(`[handleMidRollAd] 未获取到广告，广告未播放`)
+    setAdPlayingStatus(false)
   }
 }
 
@@ -116,6 +149,7 @@ const skipAdInternal = () => {
 // ------------------------
 const handleAdEndedInternal = () => {
   handleAdEnded(videoPlayer.value)
+  setAdPlayingStatus(false)
 }
 
 // ------------------------
@@ -129,6 +163,7 @@ const trackAdClick = () => trackAdClickReal()
 onMounted(async () => {
   const videoId = route.params.id
   await loadVideo(videoId)
+  resetAdState()
 
   // 初始化广告 SDK
   initAdTracker()

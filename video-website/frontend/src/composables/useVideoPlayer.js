@@ -8,8 +8,10 @@ export function useVideoPlayer() {
   const video = ref({})
   const videoPlayer = ref(null)
   const adPositions = [0.5] // 视频50%位置插入广告
-  const lastPlayTime = ref(0) // 上一次播放时间
   const isVideoReady = ref(false)
+  const isAdPlaying = ref(false)
+  const playedMidRollPositions = ref(new Set())
+  const lastTriggerTime = ref(0) // 防抖：上次触发时间
 
   // ------------------------------
   // 外部回调和监听器状态
@@ -25,6 +27,10 @@ export function useVideoPlayer() {
     try {
       const res = await axios.get(`/api/videos/${id}`)
       video.value = res.data
+      playedMidRollPositions.value.clear()
+      lastTriggerTime.value = 0
+      isVideoReady.value = false
+      isAdPlaying.value = false
       return video.value
     } catch (error) {
       console.error('加载视频失败:', error)
@@ -70,35 +76,41 @@ export function useVideoPlayer() {
   // ------------------------------
   const setTimeUpdateListener = (callback) => onTimeUpdateCallback = callback
   const setMidRollAdListener = (callback) => onMidRollAdCallback = callback
+  const setAdPlayingStatus = (status) => isAdPlaying.value = status
 
   // ------------------------------
   // 播放进度处理
   // ------------------------------
   const handleTimeUpdate = () => {
     if (onTimeUpdateCallback) onTimeUpdateCallback()
-    if (isVideoReady.value && video.value.duration > 0) checkMidRollAd()
+    if (isVideoReady.value && video.value.duration > 0 && !isAdPlaying.value) {
+      checkMidRollAd()
+    }
   }
 
   // ------------------------------
   // 中插广告逻辑（每次到达都触发）
   // ------------------------------
   const checkMidRollAd = () => {
-    if (!videoPlayer.value || !video.value.duration || !isVideoReady.value) return
+    if (!videoPlayer.value || !video.value.duration || !isVideoReady.value || isAdPlaying.value) return
 
     const current = videoPlayer.value.currentTime
     const duration = video.value.duration
+    const now = Date.now()
 
-    for (let i = 0; i < adPositions.length; i++) {
-      const adTime = duration * adPositions[i]
-      const passedAd = lastPlayTime.value < adTime && current >= adTime
-      const longEnough = duration >= 10
+    if (now - lastTriggerTime.value < 2000) return // 2秒防抖
+    lastTriggerTime.value = now
 
-      if ((Math.abs(current - adTime) < 5 || passedAd) && longEnough) {
-        if (onMidRollAdCallback) onMidRollAdCallback(i)
+    const adTime = duration * adPositions[0]
+    const timeDiff = Math.abs(current - adTime)
+
+    if (duration >= 10 && timeDiff < 3) {
+      if (!playedMidRollPositions.value.has(0)) {
+        console.log(`[中插广告] 触发！当前时间: ${current.toFixed(1)}s, 广告时间点: ${adTime.toFixed(1)}s`)
+        playedMidRollPositions.value.add(0)
+        if (onMidRollAdCallback) onMidRollAdCallback(0)
       }
     }
-
-    lastPlayTime.value = current
   }
 
   // ------------------------------
@@ -129,12 +141,15 @@ export function useVideoPlayer() {
     video,
     videoPlayer,
     isVideoReady,
+    isAdPlaying,
+    playedMidRollPositions,
 
     // 方法
     loadVideo,
     setupVideoListeners,
     setTimeUpdateListener,
     setMidRollAdListener,
+    setAdPlayingStatus,
     checkMidRollAd,
     play,
     pause,

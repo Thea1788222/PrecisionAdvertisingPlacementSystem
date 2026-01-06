@@ -18,6 +18,7 @@
         playsinline
         controls
         @ended="handleAdEnded"
+        @click="trackAdClick"
       >
         您的浏览器不支持视频播放。
       </video>
@@ -65,14 +66,25 @@ const getVideoType = (url) => {
 const playVideoAd = async (ad) => {
   if (!adVideo.value || !ad?.playUrl) return
   await nextTick()
-  adVideo.value.innerHTML = `<source src="${ad.playUrl}" type="${getVideoType(ad.playUrl)}" />`
-  adVideo.value.load()
-  adVideo.value.play().catch(err => console.warn('广告播放失败', err))
-  adVideo.value.muted = true
-  adVideo.value.autoplay = true
-  adVideo.value.playsInline = true
-  adVideo.value.load()
-  adVideo.value.play().catch(err => console.warn('广告播放失败', err))
+  
+  const videoEl = adVideo.value
+  videoEl.innerHTML = `<source src="${ad.playUrl}" type="${getVideoType(ad.playUrl)}" />`
+  videoEl.muted = true
+  videoEl.autoplay = true
+  videoEl.playsInline = true
+  
+  videoEl.load()
+  
+  try {
+    const playPromise = videoEl.play()
+    if (playPromise !== undefined) {
+      await playPromise
+    }
+  } catch (err) {
+    if (err.name !== 'AbortError') {
+      console.warn('广告播放失败', err)
+    }
+  }
 }
 
 // 事件
